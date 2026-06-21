@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Resväska · the Sweden→India gift brain</title>
+<meta name="description" content="Plan who gets what on your trip to India. Never repeat last trip's gift, stay under your bag limit, decide fast. Free, no sign-up, made for Stockholm desis.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Resväska">
+<meta name="theme-color" content="#0d0c0a">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%230d0c0a'/%3E%3Ctext x='90' y='132' font-family='Georgia,serif' font-size='118' fill='%23c9a84c' text-anchor='middle' font-style='italic'%3Er%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d0c0a;--paper:#f5f0e8;--paper-deep:#ebe3d6;
+    --gold:#c9a84c;--rust:#b85c38;--teal:#3a7d74;
+    --line:rgba(13,12,10,.14);--line-soft:rgba(13,12,10,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper);color:var(--ink);font-family:'DM Mono',monospace;padding:0 0 128px;line-height:1.5;overflow-x:hidden;padding-top:env(safe-area-inset-top);}
+  ::selection{background:var(--gold);color:var(--ink);}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}html{scroll-behavior:auto;}}
+
+  header{padding:34px 22px 22px;border-bottom:1px solid var(--line);position:relative;overflow:hidden;}
+  .flagline{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#006aa7 0 50%,#fecc00 50% 100%);}
+  .kicker{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--rust);margin-bottom:12px;}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:40px;line-height:.96;letter-spacing:-.01em;}
+  h1 em{font-style:italic;color:var(--gold);}
+  .tagline{font-size:12.5px;color:rgba(13,12,10,.62);margin-top:13px;max-width:34ch;}
+  .route{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;color:var(--teal);margin-top:13px;border:1px solid var(--line);padding:5px 11px;}
+
+  /* one-thing helper banner */
+  /* direction toggle */
+  .dirtoggle{display:flex;background:var(--paper-deep);border-bottom:1px solid var(--line);position:relative;}
+  .dirtoggle button{flex:1;background:none;border:none;font-family:'DM Mono';font-size:11px;letter-spacing:.04em;padding:13px 8px;cursor:pointer;color:rgba(13,12,10,.5);position:relative;z-index:2;transition:color .25s;line-height:1.3;}
+  .dirtoggle button .arr{font-size:13px;}
+  .dirtoggle button .dsub{display:block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;opacity:.7;}
+  .dirtoggle button.active{color:var(--paper);}
+  .dirtoggle .slider{position:absolute;top:0;bottom:0;width:50%;background:var(--ink);z-index:1;transition:transform .28s cubic-bezier(.4,0,.2,1);}
+  .dirtoggle.to-se .slider{transform:translateX(100%);}
+  .nudge{background:var(--ink);color:var(--paper);font-size:12px;padding:11px 18px;display:flex;align-items:center;gap:9px;}
+  .nudge b{color:var(--gold);font-weight:500;}
+  .nudge .x{margin-left:auto;cursor:pointer;opacity:.55;font-size:15px;}
+
+  .tripbar{display:flex;gap:1px;background:var(--line);border-bottom:1px solid var(--line);}
+  .tripcell{flex:1;background:var(--paper);padding:13px 12px;text-align:center;}
+  .tripcell .lab{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(13,12,10,.5);}
+  .tripcell .sv{font-size:8px;color:rgba(13,12,10,.35);letter-spacing:.04em;}
+  .tripcell .val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;line-height:1;margin-top:4px;}
+  .tripcell .val small{font-size:11px;font-family:'DM Mono';font-weight:400;color:rgba(13,12,10,.5);}
+  .weight-ok .val{color:var(--teal);} .weight-warn .val{color:var(--rust);}
+
+  /* visual bag gauge */
+  .gauge-wrap{padding:16px 22px 14px;border-bottom:1px solid var(--line);text-align:center;}
+  .gauge-cap{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(13,12,10,.5);margin-bottom:10px;}
+  .gauge-cap b{color:var(--ink);} .gauge-cap.over b{color:var(--rust);}
+  svg.gauge{width:100%;max-width:340px;height:auto;}
+  .gauge-edit{font-size:10px;color:var(--teal);cursor:pointer;text-decoration:underline;margin-top:6px;display:inline-block;}
+
+  .secthead{display:flex;align-items:baseline;justify-content:space-between;padding:24px 22px 8px;}
+  .secthead h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:21px;}
+  .secthead h2 .sv{font-style:italic;font-size:14px;color:var(--gold);font-weight:500;}
+  .secthead .count{font-size:11px;color:rgba(13,12,10,.45);}
+
+  .people{padding:0 14px;}
+  .person{background:var(--paper);border:1px solid var(--line);margin-bottom:11px;}
+  .person-top{display:flex;align-items:center;gap:12px;padding:14px 15px;cursor:pointer;}
+  .avatar{width:40px;height:40px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;background:var(--ink);color:var(--paper);}
+  .person-id{flex:1;min-width:0;}
+  .person-id .nm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .person-id .rel{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(13,12,10,.45);margin-top:2px;}
+  .person-stat{text-align:right;flex:none;}
+  .person-stat .big{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;line-height:1;}
+  .person-stat .lil{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(13,12,10,.45);margin-top:2px;}
+  .done-pill{color:var(--teal);}
+  .chev{margin-left:3px;color:rgba(13,12,10,.3);transition:transform .25s;font-size:11px;}
+  .person.open .chev{transform:rotate(90deg);}
+  .person-body{display:none;border-top:1px solid var(--line-soft);padding:4px 15px 13px;}
+  .person.open .person-body{display:block;}
+
+  .gift{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line-soft);}
+  .gift:last-of-type{border-bottom:none;}
+  .check{width:20px;height:20px;flex:none;border:1.5px solid var(--ink);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+  .check.on{background:var(--teal);border-color:var(--teal);}
+  .check.on::after{content:"✓";color:var(--paper);font-size:11px;}
+  .gift-txt{flex:1;min-width:0;}
+  .gift-txt .g-nm{font-size:13px;transition:opacity .2s;}
+  .gift.bought .g-nm{text-decoration:line-through;opacity:.45;}
+  .gift-txt .g-meta{font-size:10px;color:rgba(13,12,10,.45);margin-top:1px;}
+  .g-del{flex:none;cursor:pointer;color:rgba(13,12,10,.3);font-size:15px;padding:2px 4px;line-height:1;}
+  .g-del:hover{color:var(--rust);}
+  .lastyr{font-size:10px;color:var(--gold);background:rgba(201,168,76,.1);border-left:2px solid var(--gold);padding:7px 10px;margin:8px 0 4px;line-height:1.45;}
+  .lastyr b{font-weight:500;}
+
+  .addgift{display:flex;gap:6px;margin-top:10px;}
+  .addgift input{flex:1;min-width:0;background:var(--paper-deep);border:1px solid var(--line);font-family:'DM Mono';font-size:12px;padding:9px 10px;color:var(--ink);}
+  .addgift input.wt{flex:none;width:54px;text-align:center;}
+  .addgift input:focus{outline:none;border-color:var(--gold);}
+  .addgift button{flex:none;background:var(--ink);color:var(--paper);border:none;font-family:'DM Mono';font-size:16px;width:36px;cursor:pointer;}
+
+  .person-actions{display:flex;justify-content:space-between;align-items:center;margin-top:11px;}
+  .ideas-btn{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);background:none;border:1px solid var(--teal);padding:6px 10px;cursor:pointer;font-family:'DM Mono';}
+  .ideas-btn:active{background:var(--teal);color:var(--paper);}
+  .rm-person{font-size:10px;color:rgba(13,12,10,.35);background:none;border:none;cursor:pointer;font-family:'DM Mono';letter-spacing:.06em;}
+  .rm-person:hover{color:var(--rust);}
+  .ideabox{margin-top:9px;display:none;} .ideabox.show{display:block;}
+  .ideabox .ih{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(13,12,10,.4);margin-bottom:7px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{font-size:11px;padding:6px 9px;border:1px solid var(--line);background:var(--paper-deep);cursor:pointer;display:flex;align-items:center;gap:5px;}
+  .chip:active{background:var(--gold);border-color:var(--gold);}
+  .chip .cw{font-size:9px;color:rgba(13,12,10,.4);}
+
+  .addperson{padding:5px 14px 0;}
+  .addperson-inner{background:var(--paper);border:1px dashed var(--line);padding:13px 15px;}
+  .addperson-inner .ap-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(13,12,10,.45);margin-bottom:10px;}
+  .ap-row{display:flex;gap:6px;margin-bottom:6px;}
+  .ap-row input,.ap-row select{flex:1;min-width:0;background:var(--paper-deep);border:1px solid var(--line);font-family:'DM Mono';font-size:12px;padding:10px;color:var(--ink);}
+  .ap-row input:focus,.ap-row select:focus{outline:none;border-color:var(--gold);}
+  .ap-add{width:100%;background:var(--ink);color:var(--paper);border:none;font-family:'DM Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:11px;cursor:pointer;margin-top:3px;}
+  .ap-add:active{background:var(--rust);}
+
+  /* knowledge blocks */
+  .know{padding:26px 18px 6px;}
+  .know h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;padding:0 4px 4px;}
+  .know h2 .sv{font-style:italic;color:var(--gold);font-size:15px;}
+  .dyk{background:var(--ink);color:var(--paper);padding:16px 17px;margin-bottom:10px;position:relative;overflow:hidden;}
+  .dyk .tag{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+  .dyk .dtxt{font-size:12.5px;line-height:1.6;}
+  .dyk .dtxt b{color:var(--gold);font-weight:500;}
+  .dyk .punch{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(245,240,232,.7);margin-top:8px;}
+
+  .faq{background:var(--paper);border:1px solid var(--line);margin-bottom:8px;}
+  .faq-q{padding:13px 15px;font-size:13px;font-weight:500;cursor:pointer;display:flex;gap:10px;align-items:flex-start;}
+  .faq-q .qmark{color:var(--rust);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;line-height:1;flex:none;}
+  .faq-q .qx{margin-left:auto;color:rgba(13,12,10,.3);transition:transform .2s;flex:none;}
+  .faq.open .qx{transform:rotate(45deg);}
+  .faq-a{display:none;padding:0 15px 14px 40px;font-size:12px;line-height:1.65;color:rgba(13,12,10,.78);}
+  .faq.open .faq-a{display:block;}
+  .faq-a b{color:var(--ink);font-weight:500;}
+  .src{font-size:9.5px;color:rgba(13,12,10,.4);margin-top:7px;font-style:italic;}
+
+  .footbar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);display:flex;gap:1px;z-index:40;padding-bottom:env(safe-area-inset-bottom);}
+  .footbar button{flex:1;background:var(--ink);color:var(--paper);border:none;font-family:'DM Mono';font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:14px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .footbar button:active{background:#1c1a16;}
+  .footbar button .ic{font-size:15px;}
+  .footbar button.accent{color:var(--gold);}
+
+  .empty{padding:34px 28px;text-align:center;color:rgba(13,12,10,.5);}
+  .empty .e-mark{font-family:'Cormorant Garamond',serif;font-size:38px;color:var(--gold);font-style:italic;}
+  .empty p{font-size:12px;margin-top:8px;line-height:1.6;}
+  .seedbtn{margin-top:16px;background:var(--ink);color:var(--paper);border:none;font-family:'DM Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:11px 18px;cursor:pointer;}
+  .seedbtn:active{background:var(--teal);}
+
+  .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);font-size:11.5px;padding:11px 18px;letter-spacing:.04em;opacity:0;pointer-events:none;transition:all .3s;z-index:60;max-width:88vw;text-align:center;border-bottom:2px solid var(--gold);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .sheet-bg{position:fixed;inset:0;background:rgba(13,12,10,.55);z-index:70;display:none;align-items:flex-end;}
+  .sheet-bg.show{display:flex;}
+  .sheet{background:var(--paper);width:100%;max-height:84vh;overflow-y:auto;border-top:3px solid var(--gold);padding:22px 20px 30px;}
+  .sheet h3{font-family:'Cormorant Garamond',serif;font-size:25px;font-weight:600;margin-bottom:4px;}
+  .sheet .sh-sub{font-size:11px;color:rgba(13,12,10,.5);margin-bottom:15px;line-height:1.5;}
+  .sheet pre{white-space:pre-wrap;font-family:'DM Mono';font-size:12px;line-height:1.6;background:var(--paper-deep);padding:15px;border:1px solid var(--line);max-height:38vh;overflow-y:auto;}
+  .sheet-actions{display:flex;gap:8px;margin-top:13px;}
+  .sheet-actions button{flex:1;font-family:'DM Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:13px;cursor:pointer;border:1px solid var(--ink);}
+  .sheet-actions .primary{background:var(--ink);color:var(--paper);}
+  .sheet-actions .ghost{background:transparent;color:var(--ink);}
+  .sheet label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(13,12,10,.5);display:block;margin:14px 0 6px;}
+  .sheet input{width:100%;background:var(--paper-deep);border:1px solid var(--line);font-family:'DM Mono';font-size:13px;padding:11px;color:var(--ink);}
+
+  .footernote{text-align:center;padding:24px 30px 8px;font-size:10px;color:rgba(13,12,10,.4);line-height:1.7;}
+  .footernote .made{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:rgba(13,12,10,.55);margin-top:6px;display:block;}
+  .reset-link{display:block;text-align:center;margin:14px auto 0;font-size:10px;color:rgba(13,12,10,.3);background:none;border:none;font-family:'DM Mono';letter-spacing:.1em;cursor:pointer;}
+  .reset-link:hover{color:var(--rust);}
+
+  @media(min-width:620px){
+    body{max-width:560px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line);}
+    .footbar{max-width:560px;margin:0 auto;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="flagline"></div>
+  <div class="kicker">resväska · "the suitcase"</div>
+  <h1>What do I <em>bring</em><br>everyone this time?</h1>
+  <p class="tagline" id="tagline">The Sweden-to-India gift brain. One tap per decision. It remembers who got what last trip, and warns you before the bag explodes.</p>
+  <div class="route" id="route">🇸🇪 Sverige → Indien 🇮🇳 · one bag, twelve relatives, zero panic</div>
+</header>
+
+<div class="dirtoggle to-india" id="dirtoggle">
+  <div class="slider"></div>
+  <button data-dir="india" class="active"><span class="arr">🇸🇪 → 🇮🇳</span><span class="dsub">gifts I bring there</span></button>
+  <button data-dir="sweden"><span class="arr">🇮🇳 → 🇸🇪</span><span class="dsub">haul I bring back</span></button>
+</div>
+
+<div class="nudge" id="nudge">
+  <span id="nudge-txt">New here? <b>Tap "Load a sample family"</b> to see how it works in 10 seconds.</span>
+  <span class="x" id="nudge-x">×</span>
+</div>
+
+<div class="tripbar">
+  <div class="tripcell"><div class="lab">People</div><div class="sv">personer</div><div class="val" id="t-people">0</div></div>
+  <div class="tripcell"><div class="lab">Sorted</div><div class="sv">klart</div><div class="val" id="t-done">0<small>/0</small></div></div>
+  <div class="tripcell" id="t-weight-cell"><div class="lab">Weight</div><div class="sv">vikt</div><div class="val" id="t-weight">0<small>kg</small></div></div>
+</div>
+
+<div class="gauge-wrap">
+  <div class="gauge-cap" id="gauge-cap">Gift weight vs your bag · <b id="bagtxt">0 / 23 kg</b></div>
+  <svg class="gauge" id="gauge" viewBox="0 0 340 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="baggage weight gauge"></svg>
+  <span class="gauge-edit" id="editbag">change my bag limit</span>
+</div>
+
+<div class="secthead">
+  <h2 id="sec-people-h">Your people <span class="sv">/ dina personer</span></h2>
+  <div class="count" id="ppl-count"></div>
+</div>
+
+<div id="people" class="people"></div>
+
+<div class="addperson">
+  <div class="addperson-inner">
+    <div class="ap-h"><span id="ap-h-txt">add someone / lägg till</span></div>
+    <div class="ap-row"><input id="ap-name" placeholder="Name (Aai, Sasu-bai, Rohan…)" maxlength="24"></div>
+    <div class="ap-row">
+      <select id="ap-rel">
+        <option value="Parents">Parents / föräldrar</option>
+        <option value="In-laws">In-laws (Sasu/Sasra)</option>
+        <option value="Grandparents">Grandparents (Aaji/Aaba)</option>
+        <option value="Sibling">Sibling / syskon</option>
+        <option value="Aunt / Uncle">Kaka/Kaki, Mama/Mami</option>
+        <option value="Cousin">Cousin / kusin</option>
+        <option value="Kids">Kids / barn</option>
+        <option value="Friend">Friend / vän</option>
+        <option value="Help / staff">House help / didi / driver</option>
+        <option value="Neighbour">Neighbour / granne</option>
+        <option value="Other">Other / annat</option>
+      </select>
+    </div>
+    <button class="ap-add" id="ap-add">Add to the list</button>
+  </div>
+</div>
+
+<!-- KNOWLEDGE -->
+<div class="know">
+  <h2>Good to know <span class="sv">/ bra att veta</span></h2>
+  <div id="dyk-rotator"></div>
+</div>
+
+<div class="know" style="padding-top:8px">
+  <h2>The questions everyone asks</h2>
+  <div id="faqbox"></div>
+  <div class="src">Customs facts reflect India's Baggage Rules 2026 (effective 2 Feb 2026) and official Indian customs guidance. Rules and airline allowances change — always check your ticket and the latest official source before you fly. This app is a planner, not legal or customs advice.</div>
+</div>
+
+<div class="footernote">
+  Everything lives on your phone only. No sign-up, no account, nothing leaves your device unless you choose to share a code.
+  <span class="made">made by a Stockholm desi who got tired of the same packing panic every single trip</span>
+  <button class="reset-link" id="reset">clear everything & start over</button>
+</div>
+
+<div class="footbar">
+  <button id="share-wa" class="accent"><span class="ic">↗</span>Share</button>
+  <button id="share-shop"><span class="ic">☑</span>To buy</button>
+  <button id="sync"><span class="ic">⇄</span>Sync</button>
+  <button id="newtrip"><span class="ic">✈</span>New trip</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="sheet-bg" id="sheetbg"><div class="sheet" id="sheet-inner"></div></div>
+
+<script>
+const LS_KEY_BASE='resvaska2_v1', BAG_KEY='resvaska2_bag', NUDGE_KEY='resvaska2_nudge', DIR_KEY='resvaska2_dir';
+const $=s=>document.querySelector(s);
+
+let DIR=localStorage.getItem(DIR_KEY)||'india'; // 'india' = SE→IN gifts, 'sweden' = IN→SE haul
+const LS_KEY=()=>LS_KEY_BASE+'_'+DIR; // separate list per direction
+
+/* Sweden → India: gifts for relatives */
+const IDEAS_INDIA={
+ "Parents":[["Marabou choc multipack",.5],["Omega-3 / vitamins",.4],["Wool socks",.2],["Lingonsylt (jam)",.4],["Hand cream set",.3],["Saffron",.05],["Reading glasses",.1]],
+ "In-laws":[["Lindt assortment box",.5],["Scented candle",.4],["Gevalia coffee",.5],["Stainless thermos",.4],["Honey",.5],["Nice shawl / scarf",.3]],
+ "Grandparents":[["Wool socks",.2],["Warm blanket / shawl",.7],["Hand cream",.2],["Knäckebröd tin",.5],["Saffron",.05],["Dry fruits / nuts",.5],["Omega-3",.4]],
+ "Sibling":[["Toblerone bars",.4],["Skincare / cosmetics",.3],["Perfume / cologne",.3],["Stainless bottle",.3],["Daim buttons",.3],["Tech gadget",.3]],
+ "Aunt / Uncle":[["Chocolate assortment",.5],["Saffron",.05],["Premium tea",.3],["Hand cream",.2],["Honey",.5],["Knäckebröd tin",.5]],
+ "Cousin":[["Chocolate bars",.3],["Skincare bits",.2],["Flying Tiger gadgets",.2],["Perfume",.2],["Reusable bottle",.3],["Beanie / gloves",.2]],
+ "Kids":[["Flying Tiger craft kit",.3],["Stickers + sketch pad",.2],["BRIO / wooden toy",.4],["Chocolate coins",.2],["Story book",.3],["Lego-style set",.4]],
+ "Friend":[["Chocolate box",.4],["Candle",.4],["Skincare",.2],["Coffee",.5],["Quirky Tiger find",.2],["Perfume",.2]],
+ "Help / staff":[["Chocolate (always lands)",.4],["Warm shawl",.4],["Useful kitchen item",.3],["Sweets box",.5],["Soft toy for their kids",.3]],
+ "Neighbour":[["Chocolate box (shared)",.5],["Knäckebröd / fika tin",.5],["Small candle",.3]],
+ "Other":[["Chocolate",.4],["Hand cream",.2],["Coffee",.5],["Tiger gadget",.2],["Saffron",.05]]
+};
+
+/* India → Sweden: your own haul, by category. NOTE: meat & dairy can't enter Sweden from non-EU (see facts) */
+const IDEAS_SWEDEN={
+ "My kitchen":[["Dry masalas / spice mix",.5],["Whole spices",.3],["Dals / lentils",1],["Tea (loose)",.3],["Dry snacks / namkeen",.4],["Papad",.2],["Pickle (sealed, check rules)",.5],["Rice / flour",2]],
+ "Sweets & treats":[["Dry mithai (no khoya/dairy)",.5],["Chikki / til-gul",.3],["Dry fruit barfi (check)",.4],["Chocolate / biscuits",.3]],
+ "Clothes & textiles":[["Kurtas / ethnic wear",.5],["Sarees",.4],["Kids' Indian outfits",.3],["Bedsheets / linens",.7],["Shawls / dupattas",.3]],
+ "Home & gifts":[["Decor / brass items",.6],["Pooja items",.3],["Jewellery (declare if gold)",.1],["Gifts for Swedish friends",.4],["Handicrafts",.5]],
+ "Kids":[["Indian story books",.3],["Toys",.4],["Clothes",.3],["Snacks they love",.3]],
+ "Self / health":[["Ayurvedic items",.2],["Skincare / oils",.3],["Supplements (check rules)",.2]],
+ "Forced by relatives":[["Whatever Aai packed",1],["The extra suitcase",2],["Surprise tupperware",.5]],
+ "Other":[["Spices",.3],["Snacks",.4],["Clothes",.4]]
+};
+
+const REL_INDIA=[
+ ["Parents","Parents / föräldrar"],["In-laws","In-laws (Sasu/Sasra)"],["Grandparents","Grandparents (Aaji/Aaba)"],
+ ["Sibling","Sibling / syskon"],["Aunt / Uncle","Kaka/Kaki, Mama/Mami"],["Cousin","Cousin / kusin"],
+ ["Kids","Kids / barn"],["Friend","Friend / vän"],["Help / staff","House help / didi / driver"],
+ ["Neighbour","Neighbour / granne"],["Other","Other / annat"]
+];
+const REL_SWEDEN=[
+ ["My kitchen","My kitchen / köket"],["Sweets & treats","Sweets & treats"],["Clothes & textiles","Clothes & textiles"],
+ ["Home & gifts","Home & gifts"],["Kids","Kids / barn"],["Self / health","Self / health"],
+ ["Forced by relatives","Forced by relatives 😅"],["Other","Other / annat"]
+];
+
+const IDEAS=()=>DIR==='india'?IDEAS_INDIA:IDEAS_SWEDEN;
+
+/* DID YOU KNOW — every fact verified, see FAQ sources */
+const DYK_INDIA=[
+ {tag:"Systembolaget trap",txt:"In Sweden, anything stronger than <b>3.5%</b> only sells at Systembolaget — and it shuts at <b>3pm Saturday</b>, closed all Sunday.",punch:"Buying that bottle of whisky for Kaka at 14:55 on a Saturday is a desi rite of passage."},
+ {tag:"Customs · 2026",txt:"India lets you bring gifts up to <b>₹75,000</b> duty-free (residents & PIOs, by air). A gift still counts as your stuff — the allowance <b>includes</b> presents.",punch:"Green channel if you're under it. Red channel if you're the family Santa."},
+ {tag:"Booze limit",txt:"Within that allowance you can carry <b>up to 2 litres</b> of wine or spirits, and 100 cigarettes.",punch:"So: one nice bottle for Papa, not the whole Systembolaget shelf."},
+ {tag:"Weight reality",txt:"Chocolate and dry-fruit are the silent killers. A 'few boxes' of Marabou hits <b>2-3 kg</b> faster than you'd think.",punch:"This is why the gauge above goes red. Listen to the gauge."},
+ {tag:"Saffron flex",txt:"Saffron is a staple of Swedish Christmas baking (lussekatter), so it's easy to find here — and weighs basically nothing.",punch:"Maximum 'thoughtful NRI' points per gram. Aaji will be impressed."}
+];
+const DYK_SWEDEN=[
+ {tag:"The ghee heartbreak",txt:"You <b>cannot</b> bring meat or dairy into Sweden from outside the EU — for personal use, in luggage, full stop. That includes homemade <b>ghee, butter, paneer and khoya-based sweets</b>.",punch:"Aai's tupperware of ghee is the saddest confiscation at Arlanda. Pack dry mithai instead."},
+ {tag:"Fruit & veg too",txt:"Fresh fruit and vegetables from outside the EU are also <b>prohibited</b> into Sweden, with only narrow exceptions.",punch:"That mango stash? Heartbreak waiting at customs. Dry, sealed, shelf-stable is your friend."},
+ {tag:"What's actually fine",txt:"Dry spices, masalas, dals, sealed snacks, tea, papad — <b>plant-based and shelf-stable</b> generally travels fine for personal use.",punch:"The classic desi spice suitcase? Mostly legal. Breathe easy."},
+ {tag:"Pickle caution",txt:"Many Indian pickles are oil-and-plant based (usually okay), but anything with <b>dairy or meat</b> is a no. Sealed, commercial, labelled is safest.",punch:"When in doubt, it's homemade lovingly = higher customs risk. Sorry."},
+ {tag:"Gold heads-up",txt:"Carrying gold jewellery back? There are declaration rules on both sides. Worn vs boxed gets treated differently.",punch:"Wedding jewellery is fine to wear — just know the rules if it's boxed and new."}
+];
+const DYK=()=>DIR==='india'?DYK_INDIA:DYK_SWEDEN;
+
+const FAQ_INDIA=[
+ {q:"How much can I bring into India without paying duty?",a:"As of the <b>Baggage Rules 2026</b> (in effect since 2 Feb 2026), Indian residents and people of Indian origin arriving by air get a duty-free allowance of <b>₹75,000</b> for personal-use items and gifts. Foreign tourists get ₹25,000. Above that, you go through the Red Channel and pay duty. Land-border arrivals get no general allowance.",src:"Source: India CBIC Baggage Rules 2026 / customs zone guidance."},
+ {q:"Do gifts count toward that limit?",a:"Yes. <b>A gift is still an item you're carrying in</b>, so it counts toward your allowance. Only things you <i>post</i> separately as gifts follow different rules. Worn/used personal items (your own clothes, your phone) don't count.",src:"Source: Indian customs passenger guidance, 2026."},
+ {q:"Can I bring alcohol as a gift?",a:"Within your duty-free allowance you can include <b>up to 2 litres</b> of wine or spirits, plus a tobacco limit (100 cigarettes / 25 cigars / 125g). More than that is dutiable. Remember the Sweden side too: spirits only come from Systembolaget.",src:"Source: Indian customs duty-free allowance schedule, 2026."},
+ {q:"What's my baggage WEIGHT limit — is it 23kg?",a:"That depends entirely on <b>your airline and ticket</b>, not on customs. Many economy long-haul tickets are around 23kg per checked bag, but several carriers flying Europe→India allow more, and codeshares vary. <b>Check your specific booking</b> — this app lets you set whatever your ticket says using 'change my bag limit'. Customs rules (above) are about value in rupees; the airline rule is about kilos. Two different things.",src:"Always confirm on your airline's site or e-ticket."},
+ {q:"When is Systembolaget open? I keep missing it.",a:"Weekdays it closes by <b>7pm</b> (8pm latest), Saturdays at <b>3pm</b>, and it's <b>closed all day Sunday</b> and on public holidays. Minimum buying age is 20. If alcohol is on your gift list, buy it by Friday or early Saturday — and earlier still before Christmas, Midsummer or Easter when queues are long.",src:"Source: Systembolaget / Swedish alcohol retail rules."},
+ {q:"What actually survives the flight and customs without drama?",a:"Safe, light, well-loved bets: <b>chocolate</b> (Marabou, Lindt, Daim), <b>saffron</b>, <b>dry fruit & nuts</b>, <b>vitamins/omega-3</b>, <b>skincare & perfume</b>, <b>wool socks & shawls</b>, and <b>Flying Tiger</b> bits for kids. Keep chocolate out of a hot connecting airport's reach (carry-on if you can) so it doesn't melt.",src:"General packing wisdom, not a customs ruling."}
+];
+const FAQ_SWEDEN=[
+ {q:"Can I bring Indian food into Sweden at all?",a:"Mostly yes, with one big exception. From a <b>non-EU country like India, you cannot bring meat or dairy products</b> into Sweden for personal use — including in your luggage. Plant-based, dry, shelf-stable foods (spices, dals, sealed snacks, tea) are generally fine for personal use. Fresh fruit and vegetables are also restricted.",src:"Source: Swedish Customs (Tullverket) & Swedish Board of Agriculture, 2026."},
+ {q:"So no ghee, paneer, or homemade dairy sweets?",a:"Correct — <b>dairy counts as an animal product</b>, and animal products can't be brought into Sweden from outside the EU. That sadly covers ghee, butter, paneer, and khoya/milk-based mithai. Choose <b>dry</b> sweets (besan/dry-fruit based without dairy), or buy them at a desi store in Sweden instead.",src:"Source: Tullverket / Livsmedelsverket, 2026."},
+ {q:"What about pickles and masalas?",a:"Dry masalas and spice mixes are generally fine. Pickles are usually oil-and-plant based, which is typically okay — but anything containing <b>meat or dairy</b> is not allowed, and customs can inspect. <b>Sealed, commercially labelled</b> products are the safest choice and easiest to explain at the border.",src:"Source: Swedish food-import guidance for private use, 2026."},
+ {q:"Is there a weight limit on the food I bring?",a:"For the foods that ARE allowed (plant-based, for personal use), the practical limit is your <b>airline baggage allowance</b>, not a customs cap in most cases. The rules are mainly about <i>type</i> of food, not weight. Set your real bag limit above and let the gauge keep you honest — masalas and dals add up fast.",src:"Always check current Tullverket guidance before flying."},
+ {q:"Can I bring gold jewellery back to Sweden?",a:"There are declaration rules around carrying valuables and cash across borders (cash of €10,000+ must be declared to Swedish Customs). For gold, rules differ for worn vs boxed/new items and there can be obligations on both the India and Sweden side. If you're carrying significant jewellery, check both countries' current rules.",src:"Source: Tullverket cash/valuables declaration guidance."},
+ {q:"What's the smartest stuff to actually haul back?",a:"Shelf-stable and hard-to-find-here wins: <b>dry masalas, dals, loose tea, sealed snacks, papad</b>, plus <b>clothes, textiles, kids' books and home/decor</b> items. Skip anything fresh, dairy, or meat. Buy perishables at a Stockholm desi store instead — Desi Stockholm has the map for that.",src:"General guidance, not a customs ruling."}
+];
+const FAQS=()=>DIR==='india'?FAQ_INDIA:FAQ_SWEDEN;
+
+let state={people:[]};
+let BAG=parseFloat(localStorage.getItem(BAG_KEY))||23;
+let dykIndex=0;
+
+const uid=()=>Math.random().toString(36).slice(2,9);
+function initials(n){const p=n.trim().split(/\s+/);return ((p[0]?.[0]||"")+(p[1]?.[0]||"")).toUpperCase()||"?";}
+const tints=['#0d0c0a','#b85c38','#3a7d74','#8a6d2f'];
+function tintFor(id){let s=0;for(const c of id)s+=c.charCodeAt(0);return tints[s%tints.length];}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function load(){try{const r=localStorage.getItem(LS_KEY());if(r)state=JSON.parse(r);else state={people:[]};}catch(e){state={people:[]};}if(!state.people)state.people=[];}
+function save(){try{localStorage.setItem(LS_KEY(),JSON.stringify(state));}catch(e){toast('Storage blocked — enable cookies');}render();}
+
+function totals(){let g=0,b=0,kg=0;state.people.forEach(p=>p.gifts.forEach(x=>{g++;if(x.bought){b++;kg+=(+x.kg||0);}}));return{people:state.people.length,gifts:g,bought:b,kg};}
+
+/* ---- SVG suitcase gauge ---- */
+function drawGauge(kg){
+  const pct=Math.max(0,Math.min(1.18,kg/BAG)); // allow a little overflow visual
+  const over=kg>BAG;
+  const W=340,barX=14,barW=312,barY=34,barH=30;
+  const fillW=Math.min(barW,barW*Math.min(1,pct));
+  const overW=over?Math.min(barW,barW*(pct-1)):0;
+  const fillCol=over?'#b85c38':'#3a7d74';
+  // ticks at 25/50/75/100%
+  let ticks='';
+  [.25,.5,.75].forEach(t=>{const x=barX+barW*t;ticks+=`<line x1="${x}" y1="${barY}" x2="${x}" y2="${barY+barH}" stroke="rgba(13,12,10,.12)" stroke-width="1"/>`;});
+  const limitX=barX+barW;
+  const svg=`
+    <!-- suitcase handle -->
+    <path d="M${barX+barW/2-16} 18 q16 -12 32 0" fill="none" stroke="#0d0c0a" stroke-width="2.4" opacity=".5"/>
+    <!-- track -->
+    <rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="4" fill="#ebe3d6" stroke="#0d0c0a" stroke-opacity=".25"/>
+    ${ticks}
+    <!-- fill -->
+    <rect x="${barX}" y="${barY}" width="${fillW}" height="${barH}" rx="4" fill="${fillCol}"><animate attributeName="width" to="${fillW}" dur="0.4s" fill="freeze"/></rect>
+    ${over?`<rect x="${barX+barW}" y="${barY-3}" width="${Math.min(8+overW,W-barX-barW-2)}" height="${barH+6}" rx="3" fill="#b85c38" opacity=".55"/>`:''}
+    <!-- limit marker -->
+    <line x1="${limitX}" y1="${barY-6}" x2="${limitX}" y2="${barY+barH+6}" stroke="#0d0c0a" stroke-width="2"/>
+    <text x="${limitX}" y="${barY-10}" text-anchor="end" font-family="DM Mono" font-size="9" fill="#0d0c0a" opacity=".6">${BAG}kg limit</text>
+    <!-- current label -->
+    <text x="${barX}" y="${barY+barH+20}" font-family="Cormorant Garamond" font-style="italic" font-size="16" fill="${over?'#b85c38':'#0d0c0a'}">${kg.toFixed(1)} kg packed</text>
+    <text x="${barX+barW}" y="${barY+barH+20}" text-anchor="end" font-family="DM Mono" font-size="10" fill="rgba(13,12,10,.5)">${over?('+'+(kg-BAG).toFixed(1)+'kg over — repack'):(Math.max(0,BAG-kg).toFixed(1)+'kg to spare')}</text>`;
+  $('#gauge').innerHTML=svg;
+  const cap=$('#gauge-cap');cap.className='gauge-cap'+(over?' over':'');
+  $('#bagtxt').textContent=`${kg.toFixed(1)} / ${BAG} kg`;
+}
+
+function render(){
+  const t=totals();
+  $('#t-people').textContent=t.people;
+  $('#t-done').innerHTML=`${t.bought}<small>/${t.gifts}</small>`;
+  $('#t-weight').innerHTML=`${t.kg.toFixed(1)}<small>kg</small>`;
+  $('#t-weight-cell').className='tripcell '+(t.kg>BAG?'weight-warn':'weight-ok');
+  $('#ppl-count').textContent=t.people?`${t.bought} of ${t.gifts} sorted`:'';
+  drawGauge(t.kg);
+
+  const box=$('#people');box.innerHTML='';
+  if(!state.people.length){
+    box.innerHTML=`<div class="empty"><div class="e-mark">✦</div>
+      <p>Nobody on the list yet.<br>Add the people you always shop for — or load a sample family to see how it flows.</p>
+      <button class="seedbtn" id="seed">Load a sample family</button></div>`;
+    return;
+  }
+  state.people.forEach(p=>{
+    const done=p.gifts.filter(g=>g.bought).length,total=p.gifts.length;
+    const allDone=total>0&&done===total;
+    const ideas=IDEAS()[p.rel]||IDEAS().Other;
+    const card=document.createElement('div');
+    card.className='person'+(p.open?' open':'');
+    card.innerHTML=`
+      <div class="person-top" data-toggle="${p.id}">
+        <div class="avatar" style="background:${tintFor(p.id)}">${initials(p.name)}</div>
+        <div class="person-id"><div class="nm">${esc(p.name)}</div><div class="rel">${esc(p.rel)}</div></div>
+        <div class="person-stat"><div class="big ${allDone?'done-pill':''}">${allDone?'✓':done+'/'+total}</div><div class="lil">${allDone?'klart':'gifts'}</div></div>
+        <div class="chev">▶</div>
+      </div>
+      <div class="person-body">
+        ${p.lastTrip&&p.lastTrip.length?`<div class="lastyr">Last trip: <b>${p.lastTrip.map(esc).join(', ')}</b> — give something different this time.</div>`:''}
+        <div class="gifts">
+          ${p.gifts.map(g=>`
+            <div class="gift ${g.bought?'bought':''}">
+              <div class="check ${g.bought?'on':''}" data-check="${p.id}|${g.id}"></div>
+              <div class="gift-txt"><div class="g-nm">${esc(g.name)}</div>${g.kg?`<div class="g-meta">${g.kg} kg</div>`:''}</div>
+              <div class="g-del" data-del="${p.id}|${g.id}">×</div>
+            </div>`).join('')||`<div style="font-size:11px;color:rgba(13,12,10,.4);padding:8px 0">Nothing planned — tap an idea below or type your own.</div>`}
+        </div>
+        <div class="addgift">
+          <input placeholder="Add a gift…" data-gname="${p.id}" maxlength="40">
+          <input class="wt" placeholder="kg" data-gwt="${p.id}" inputmode="decimal">
+          <button data-gadd="${p.id}">＋</button>
+        </div>
+        <div class="person-actions">
+          <button class="ideas-btn" data-ideas="${p.id}">💡 Ideas</button>
+          <button class="rm-person" data-rmp="${p.id}">remove</button>
+        </div>
+        <div class="ideabox" id="ideas-${p.id}">
+          <div class="ih">tap to add · weights rough</div>
+          <div class="chips">${ideas.map(([nm,kg])=>`<div class="chip" data-chip="${p.id}|${esc(nm)}|${kg}">${esc(nm)}<span class="cw">${kg}kg</span></div>`).join('')}</div>
+        </div>
+      </div>`;
+    box.appendChild(card);
+  });
+}
+
+/* render knowledge once */
+function renderKnowledge(){
+  renderDYK();
+  $('#faqbox').innerHTML=FAQS().map((f,i)=>`
+    <div class="faq" data-faq="${i}">
+      <div class="faq-q"><span class="qmark">?</span><span>${f.q}</span><span class="qx">＋</span></div>
+      <div class="faq-a">${f.a}<div class="src">${f.src}</div></div>
+    </div>`).join('');
+}
+function renderDYK(){
+  const arr=DYK();
+  const d=arr[dykIndex%arr.length];
+  $('#dyk-rotator').innerHTML=`<div class="dyk">
+    <div class="tag">Did you know · ${d.tag}</div>
+    <div class="dtxt">${d.txt}</div>
+    <div class="punch">${d.punch}</div>
+    <div style="margin-top:11px;display:flex;gap:8px;align-items:center">
+      <button id="dyk-next" style="background:none;border:1px solid rgba(245,240,232,.3);color:var(--gold);font-family:'DM Mono';font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:6px 11px;cursor:pointer">next ✦</button>
+      <span style="font-size:9px;color:rgba(245,240,232,.4)">${(dykIndex%arr.length)+1} / ${arr.length}</span>
+    </div>
+  </div>`;
+}
+
+/* events */
+document.addEventListener('click',e=>{
+  if(e.target.id==='editbag'){editBag();return;}
+  if(e.target.id==='seed'){seedFamily();return;}
+  if(e.target.id==='dyk-next'){dykIndex++;renderDYK();return;}
+  if(e.target.id==='nudge-x'){$('#nudge').style.display='none';localStorage.setItem(NUDGE_KEY,'1');return;}
+  const faq=e.target.closest('[data-faq]');
+  if(faq){faq.classList.toggle('open');return;}
+  const tog=e.target.closest('[data-toggle]');
+  if(tog){const p=find(tog.dataset.toggle);p.open=!p.open;save();return;}
+  const chk=e.target.closest('[data-check]');
+  if(chk){const[pid,gid]=chk.dataset.check.split('|');const g=findGift(pid,gid);g.bought=!g.bought;save();return;}
+  const del=e.target.closest('[data-del]');
+  if(del){const[pid,gid]=del.dataset.del.split('|');const p=find(pid);p.gifts=p.gifts.filter(g=>g.id!==gid);save();return;}
+  const add=e.target.closest('[data-gadd]');
+  if(add){addGift(add.dataset.gadd);return;}
+  const chip=e.target.closest('[data-chip]');
+  if(chip){const[pid,nm,kg]=chip.dataset.chip.split('|');pushGift(pid,nm,kg);toast(`Added: ${nm}`);return;}
+  const ib=e.target.closest('[data-ideas]');
+  if(ib){$('#ideas-'+ib.dataset.ideas).classList.toggle('show');return;}
+  const rmp=e.target.closest('[data-rmp]');
+  if(rmp){const p=find(rmp.dataset.rmp);if(confirm(`Remove ${p.name}?`)){state.people=state.people.filter(x=>x.id!==rmp.dataset.rmp);save();}return;}
+});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const gn=e.target.closest('[data-gname]');if(gn)addGift(gn.dataset.gname);});
+
+function addGift(pid){const n=document.querySelector(`[data-gname="${pid}"]`),w=document.querySelector(`[data-gwt="${pid}"]`);const nm=n.value.trim();if(!nm){n.focus();return;}pushGift(pid,nm,parseFloat(w.value)||0);n.value='';w.value='';n.focus();}
+function pushGift(pid,nm,kg){const p=find(pid);p.gifts.push({id:uid(),name:nm,kg:(+kg||0),bought:false});p.open=true;save();}
+
+$('#ap-add').addEventListener('click',addPerson);
+$('#ap-name').addEventListener('keydown',e=>{if(e.key==='Enter')addPerson();});
+function addPerson(){const nm=$('#ap-name').value.trim(),rel=$('#ap-rel').value;if(!nm){$('#ap-name').focus();return;}state.people.push({id:uid(),name:nm,rel,gifts:[],open:true,lastTrip:[]});$('#ap-name').value='';save();toast(`${nm} added`);}
+
+$('#newtrip').addEventListener('click',()=>{
+  if(!totals().people){toast('Add people first');return;}
+  if(!confirm("Start a new trip?\n\nWhat you bought becomes each person's 'last trip' memory, and the lists reset clean. Your people stay."))return;
+  state.people.forEach(p=>{const b=p.gifts.filter(g=>g.bought).map(g=>g.name);if(b.length)p.lastTrip=b;p.gifts=[];p.open=false;});
+  save();toast('New trip · last-trip memory saved ✦');
+});
+
+function find(id){return state.people.find(p=>p.id===id);}
+function findGift(pid,gid){return find(pid).gifts.find(g=>g.id===gid);}
+let tT;function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('show'),2000);}
+
+function editBag(){
+  const v=prompt("Your checked-bag allowance in kg?\n\nThis is your AIRLINE limit (on your ticket), not a customs rule. Many economy tickets are ~23kg but several carriers to India allow more. Check your booking.",BAG);
+  if(v===null)return;const n=parseFloat(v);if(n>0&&n<60){BAG=n;localStorage.setItem(BAG_KEY,n);render();toast(`Bag limit: ${n}kg`);}else toast('Enter a number 1-59');
+}
+
+function seedFamily(){
+  if(DIR==='india'){
+    state.people=[
+      {id:uid(),name:"Aai",rel:"Parents",open:true,lastTrip:["Wool socks","Lindt box"],gifts:[{id:uid(),name:"Saffron",kg:.05,bought:false},{id:uid(),name:"Omega-3 / vitamins",kg:.4,bought:false}]},
+      {id:uid(),name:"Sasu-bai",rel:"In-laws",open:false,lastTrip:[],gifts:[{id:uid(),name:"Lindt assortment box",kg:.5,bought:false},{id:uid(),name:"Scented candle",kg:.4,bought:false}]},
+      {id:uid(),name:"Rohan & kids",rel:"Kids",open:false,lastTrip:[],gifts:[{id:uid(),name:"Flying Tiger craft kit",kg:.3,bought:false},{id:uid(),name:"Chocolate coins",kg:.2,bought:false}]}
+    ];
+  }else{
+    state.people=[
+      {id:uid(),name:"My masalas",rel:"My kitchen",open:true,lastTrip:[],gifts:[{id:uid(),name:"Goda masala / spice mix",kg:.5,bought:false},{id:uid(),name:"Dals (toor, moong)",kg:1,bought:false},{id:uid(),name:"Loose chai",kg:.3,bought:false}]},
+      {id:uid(),name:"Dry sweets",rel:"Sweets & treats",open:false,lastTrip:[],gifts:[{id:uid(),name:"Chikki / til-gul",kg:.3,bought:false},{id:uid(),name:"Dry-fruit barfi (no khoya)",kg:.4,bought:false}]},
+      {id:uid(),name:"Ivaan's stuff",rel:"Kids",open:false,lastTrip:[],gifts:[{id:uid(),name:"Marathi story books",kg:.3,bought:false},{id:uid(),name:"Snacks he loves",kg:.3,bought:false}]}
+    ];
+  }
+  save();toast('Sample loaded — edit or clear it');
+}
+
+/* share */
+function buildFullList(){
+  let out=DIR==='india'?"🎁 *India gift list*\n\n":"🧳 *India → Sweden haul*\n\n";
+  state.people.forEach(p=>{if(!p.gifts.length)return;out+=`*${p.name}* (${p.rel})\n`;p.gifts.forEach(g=>out+=`${g.bought?'✅':'⬜'} ${g.name}${g.kg?` · ${g.kg}kg`:''}\n`);out+="\n";});
+  const t=totals();out+=`——\n${t.bought}/${t.gifts} sorted · ${t.kg.toFixed(1)}kg / ${BAG}kg bag`;
+  if(t.kg>BAG)out+=` ⚠️ over!`;
+  out+="\n\nMade with Resväska";
+  return out.trim();
+}
+function buildShoppingRun(){
+  const need={};state.people.forEach(p=>p.gifts.forEach(g=>{if(!g.bought)need[g.name]=(need[g.name]||0)+1;}));
+  const k=Object.keys(need);
+  if(!k.length)return "🛒 *Shopping run*\n\nAll bought. Bag's packed ✈️";
+  let out="🛒 *Still to buy*\n\n";k.forEach(x=>out+=`⬜ ${x}${need[x]>1?` ×${need[x]}`:''}\n`);
+  out+=`\n${k.length} item${k.length>1?'s':''} left`;
+  return out.trim();
+}
+function openSheetHTML(h){$('#sheet-inner').innerHTML=h;$('#sheetbg').classList.add('show');}
+function closeSheet(){$('#sheetbg').classList.remove('show');}
+$('#sheetbg').addEventListener('click',e=>{if(e.target.id==='sheetbg')closeSheet();});
+function shareText(title,sub,text){
+  openSheetHTML(`<h3>${title}</h3><div class="sh-sub">${sub}</div><pre>${esc(text)}</pre>
+    <div class="sheet-actions"><button class="primary" id="docopy">Copy text</button><button class="ghost" id="doclose">Close</button></div>`);
+  $('#docopy').onclick=async()=>{try{await navigator.clipboard.writeText(text);toast('Copied — paste in WhatsApp');}catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied');}catch(_){toast('Select & copy manually');}ta.remove();}};
+  $('#doclose').onclick=closeSheet;
+}
+$('#share-wa').addEventListener('click',()=>{if(!totals().gifts){toast('Add some gifts first');return;}const text=buildFullList();if(navigator.share)navigator.share({text}).catch(()=>shareText('Share list','Copy & paste into your family WhatsApp',text));else shareText('Share list','Copy & paste into your family WhatsApp',text);});
+$('#share-shop').addEventListener('click',()=>{const text=buildShoppingRun();if(navigator.share)navigator.share({text}).catch(()=>shareText('To buy',"What's still left, deduped for the shop",text));else shareText('To buy',"What's still left, deduped for the shop",text);});
+
+/* partner sync (no backend) */
+function encodeState(){const slim={p:state.people.map(p=>({n:p.name,r:p.rel,l:p.lastTrip||[],g:p.gifts.map(g=>[g.name,g.kg,g.bought?1:0])})),b:BAG};return btoa(unescape(encodeURIComponent(JSON.stringify(slim))));}
+function decodeState(code){const slim=JSON.parse(decodeURIComponent(escape(atob(code.trim()))));state.people=slim.p.map(p=>({id:uid(),name:p.n,rel:p.r,open:false,lastTrip:p.l||[],gifts:(p.g||[]).map(g=>({id:uid(),name:g[0],kg:g[1],bought:!!g[2]}))}));if(slim.b){BAG=slim.b;localStorage.setItem(BAG_KEY,BAG);}}
+$('#sync').addEventListener('click',()=>{
+  const code=encodeState();
+  openSheetHTML(`<h3>Partner sync</h3>
+    <div class="sh-sub">No accounts, no cloud. Copy this code, WhatsApp it to your partner, they paste it into their app's box below. Their list becomes a copy of yours.</div>
+    <label>Your list code</label>
+    <pre style="font-size:10px;max-height:120px">${esc(code)}</pre>
+    <div class="sheet-actions" style="margin-bottom:6px"><button class="primary" id="copycode">Copy my code</button><button class="ghost" id="sharecode">Send it</button></div>
+    <label>Load a code from your partner</label>
+    <input id="incode" placeholder="paste their code here">
+    <div class="sheet-actions"><button class="primary" id="loadcode">Load it</button><button class="ghost" id="closecode">Close</button></div>`);
+  $('#copycode').onclick=async()=>{try{await navigator.clipboard.writeText(code);toast('Code copied');}catch(e){toast('Select the code & copy');}};
+  $('#sharecode').onclick=()=>{const msg="Here's our India gift list code for the Resväska app — paste it into the Sync box:\n\n"+code;if(navigator.share)navigator.share({text:msg}).catch(()=>{});else{navigator.clipboard.writeText(code);toast('Code copied — paste in WhatsApp');}};
+  $('#loadcode').onclick=()=>{const v=$('#incode').value;if(!v.trim()){$('#incode').focus();return;}if(!confirm("Loading replaces your current list with your partner's. Continue?"))return;try{decodeState(v);save();closeSheet();toast('Synced from partner ✦');}catch(e){toast('That code did not read — check it copied fully');}};
+  $('#closecode').onclick=closeSheet;
+});
+
+$('#reset').addEventListener('click',()=>{if(!confirm('Clear everyone and every gift? This only affects your phone.'))return;state={people:[]};save();toast('Cleared');});
+
+/* ---- direction switching ---- */
+function applyDirection(){
+  // rebuild relationship dropdown
+  const rels=DIR==='india'?REL_INDIA:REL_SWEDEN;
+  $('#ap-rel').innerHTML=rels.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+  // header + section copy
+  if(DIR==='india'){
+    $('#route').textContent='🇸🇪 Sverige → Indien 🇮🇳 · one bag, twelve relatives, zero panic';
+    $('#sec-people-h').innerHTML='Your people <span class="sv">/ dina personer</span>';
+    $('#ap-h-txt').textContent='add someone / lägg till';
+    $('#ap-name').placeholder='Name (Aai, Sasu-bai, Rohan…)';
+    document.querySelector('h1').innerHTML='What do I <em>bring</em><br>everyone this time?';
+    $('#tagline').textContent='The Sweden-to-India gift brain. One tap per decision. It remembers who got what last trip, and warns you before the bag explodes.';
+  }else{
+    $('#route').textContent='🇮🇳 Indien → Sverige 🇸🇪 · the haul home, minus the customs heartbreak';
+    $('#sec-people-h').innerHTML='Your haul <span class="sv">/ ditt bagage</span>';
+    $('#ap-h-txt').textContent='add a category / lägg till';
+    $('#ap-name').placeholder='Label (My masalas, kids books…)';
+    document.querySelector('h1').innerHTML='What am I <em>hauling</em><br>back this time?';
+    $('#tagline').textContent='The India-to-Sweden haul brain. Pack the spice suitcase, dodge the meat-and-dairy customs trap, and keep the bag under limit.';
+  }
+  // toggle visual
+  const dt=$('#dirtoggle');
+  dt.className='dirtoggle '+(DIR==='india'?'to-india':'to-se');
+  document.querySelectorAll('#dirtoggle button').forEach(b=>b.classList.toggle('active',b.dataset.dir===DIR));
+}
+document.querySelectorAll('#dirtoggle button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.dataset.dir===DIR)return;
+    DIR=btn.dataset.dir;localStorage.setItem(DIR_KEY,DIR);
+    load();applyDirection();renderKnowledge();render();
+    toast(DIR==='india'?'Switched: gifts for India ✈️':'Switched: haul back to Sweden 🏠');
+  });
+});
+
+/* boot */
+(function(){
+  load();
+  applyDirection();
+  if(localStorage.getItem(NUDGE_KEY)==='1')$('#nudge').style.display='none';
+  const params=new URLSearchParams(location.search);
+  const c=params.get('code');
+  if(c){try{decodeState(c);save();history.replaceState({},'',location.pathname);toast('Loaded shared list ✦');$('#nudge').style.display='none';}catch(e){}}
+  renderKnowledge();
+  render();
+})();
+</script>
+</body>
+</html>
