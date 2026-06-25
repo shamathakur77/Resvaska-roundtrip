@@ -3,683 +3,792 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d0c0a">
-<title>Resväska · India Haul Planner</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Resväska">
+<title>Resväska — Haul Planner</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --ink: #0d0c0a;
-  --paper: #f5f0e8;
-  --paper-dark: #ede7d9;
-  --gold: #c9a84c;
-  --gold-dim: #a8883a;
-  --rust: #b85c38;
-  --teal: #3a7d74;
-  --teal-dim: #2d6860;
-  --muted: #6b6456;
-  --border: rgba(201,168,76,0.25);
-  --border-strong: rgba(201,168,76,0.5);
-  --success: #4a7c59;
-  --warn: #b85c38;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0d0c0a;overscroll-behavior:none}
+
+:root{
+  --bg:#0d0c0a;
+  --surface:#1a1510;
+  --surface2:#221c14;
+  --surface3:#2d2418;
+  --gold:#f5c842;
+  --gold-dim:#b8941e;
+  --terra:#c45c26;
+  --cream:#e8d5b0;
+  --cream-dim:#a89070;
+  --green:#4a9e6b;
+  --red:#d94040;
+  --amber:#e08c1a;
+  --border:rgba(245,200,66,0.12);
+  --border2:rgba(245,200,66,0.22);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--ink);
-  color: var(--paper);
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 16px;
-  line-height: 1.6;
-  min-height: 100vh;
+body{
+  font-family:'Inter',sans-serif;
+  color:var(--cream);
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
 }
 
-/* grain overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
+/* WEIGHT BAR — always visible */
+.weight-bar{
+  background:var(--surface);
+  padding:12px 16px 10px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  padding-top:max(12px, env(safe-area-inset-top, 12px));
 }
+.weight-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.weight-label{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:.1em;color:var(--cream-dim);text-transform:uppercase}
+.weight-nums{font-family:'Syne',sans-serif;font-size:13px;font-weight:600}
+.w-cur{color:var(--gold);transition:color .3s}
+.w-cur.warn{color:var(--amber)}
+.w-cur.danger{color:var(--red)}
+.w-lim{color:var(--cream-dim);font-size:11px}
+.weight-track{height:6px;background:rgba(255,255,255,0.08);border-radius:100px;overflow:hidden}
+.weight-fill{height:100%;border-radius:100px;background:var(--gold);transition:width .5s cubic-bezier(.34,1.56,.64,1),background .3s}
+.weight-fill.warn{background:var(--amber)}
+.weight-fill.danger{background:var(--red)}
+.weight-footer{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
+.customs-pill{font-size:10px;padding:2px 8px;border-radius:100px;background:rgba(196,92,38,.15);color:#e08060;border:.5px solid rgba(196,92,38,.3)}
+.remaining-text{font-size:10px;color:var(--cream-dim);font-family:'Syne',sans-serif}
+.remaining-text.warn{color:var(--amber)}
+.remaining-text.danger{color:var(--red)}
 
-.app { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 0 1rem 4rem; }
+/* CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(68px + var(--safe-bottom))}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 
-/* header */
-.header { padding: 2rem 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 0; }
-.header-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
-.wordmark { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; }
-.header h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 500; color: var(--paper); line-height: 1.15; margin: 0.5rem 0 0.25rem; }
-.header h1 em { font-style: italic; color: var(--gold); }
-.header p { font-size: 0.95rem; color: var(--muted); font-style: italic; }
-
-/* tab nav */
-.tab-nav { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none; position: sticky; top: 0; background: var(--ink); z-index: 10; padding-top: 0.75rem; }
-.tab-nav::-webkit-scrollbar { display: none; }
-.tab-btn { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; padding: 0.6rem 1rem 0.7rem; cursor: pointer; white-space: nowrap; transition: color 0.2s, border-color 0.2s; }
-.tab-btn:hover { color: var(--paper); }
-.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-/* tab panels */
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* stat row */
-.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.75rem; }
-.stat-box { background: rgba(201,168,76,0.06); border: 1px solid var(--border); border-radius: 4px; padding: 0.75rem 1rem; }
-.stat-box .n { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--gold); }
-.stat-box .l { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; }
-
-/* filters */
-.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
-.cat-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
-.cat-btn:hover { border-color: var(--border-strong); color: var(--paper); }
-.cat-btn.on { background: rgba(201,168,76,0.12); border-color: var(--gold); color: var(--gold); }
-
-/* checklist items */
-.item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
-.item:hover { border-color: var(--border-strong); background: rgba(201,168,76,0.03); }
-.item.done { opacity: 0.4; }
-.item.done .item-name { text-decoration: line-through; }
-.cb { width: 18px; height: 18px; flex-shrink: 0; border: 1px solid var(--border-strong); border-radius: 2px; margin-top: 3px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
-.item.done .cb { background: var(--teal); border-color: var(--teal); }
-.check-svg { display: none; }
-.item.done .check-svg { display: block; }
-.item-body { flex: 1; min-width: 0; }
-.item-name { font-size: 1rem; font-weight: 500; color: var(--paper); margin-bottom: 2px; }
-.item-meta { font-size: 0.8rem; color: var(--muted); font-style: italic; }
-.item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-.pill { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; }
-.pill-must { background: rgba(184,92,56,0.15); color: var(--rust); border: 1px solid rgba(184,92,56,0.3); }
-.pill-high { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
-.pill-nice { background: rgba(107,100,86,0.15); color: var(--muted); border: 1px solid rgba(107,100,86,0.2); }
-.savings-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--teal); }
-.order-link { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold-dim); text-decoration: none; border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; transition: border-color 0.15s; }
-.order-link:hover { border-color: var(--gold); color: var(--gold); }
-
-.section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 1.5rem 0 0.6rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
-
-/* budget tab */
-.budget-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.budget-input-group { display: flex; align-items: center; gap: 8px; }
-.budget-input-group label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
-.budget-input-group input { background: transparent; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--paper); font-family: 'DM Mono', monospace; font-size: 13px; padding: 5px 10px; width: 110px; }
-.budget-input-group input:focus { outline: none; border-color: var(--gold); }
-
-.budget-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.budget-table th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
-.budget-table th:last-child { text-align: right; }
-.budget-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(201,168,76,0.08); vertical-align: middle; }
-.budget-table tr:hover td { background: rgba(201,168,76,0.03); }
-.budget-table .cat-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.budget-table input.cost-input { background: transparent; border: 1px solid var(--border); border-radius: 2px; color: var(--paper); font-family: 'DM Mono', monospace; font-size: 12px; padding: 3px 7px; width: 85px; text-align: right; }
-.budget-table input.cost-input:focus { outline: none; border-color: var(--gold); }
-.sek-saved { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--teal); text-align: right; }
-.budget-total-row td { border-top: 1px solid var(--border-strong); border-bottom: none; font-weight: 600; padding-top: 0.9rem; }
-
-.budget-bar-wrap { margin: 1.5rem 0 0.5rem; }
-.budget-bar-label { display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-.budget-bar { height: 6px; background: rgba(201,168,76,0.1); border-radius: 3px; overflow: hidden; }
-.budget-bar-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.4s ease; }
-.budget-bar-fill.over { background: var(--rust); }
-
-/* store guide tab */
-.city-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.city-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
-.city-btn:hover { border-color: var(--border-strong); color: var(--paper); }
-.city-btn.on { background: rgba(58,125,116,0.12); border-color: var(--teal); color: var(--teal); }
-
-.store-section { margin-bottom: 1.75rem; }
-.store-section-title { font-size: 1rem; font-weight: 600; color: var(--gold); margin-bottom: 0.75rem; font-style: italic; }
-.store-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 7px; transition: border-color 0.15s; }
-.store-card:hover { border-color: var(--border-strong); }
-.store-card-body { flex: 1; }
-.store-name { font-size: 0.95rem; font-weight: 500; color: var(--paper); margin-bottom: 2px; }
-.store-desc { font-size: 0.78rem; color: var(--muted); font-style: italic; }
-.store-link { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold-dim); text-decoration: none; border: 1px solid var(--border); border-radius: 20px; padding: 3px 9px; white-space: nowrap; flex-shrink: 0; transition: border-color 0.15s; }
-.store-link:hover { border-color: var(--gold); color: var(--gold); }
-
-/* weight tab */
-.weight-bar-wrap { margin-bottom: 2rem; }
-.weight-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.5rem; }
-.weight-display .big { font-family: 'DM Mono', monospace; font-size: 2.2rem; color: var(--paper); }
-.weight-display .of { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--muted); }
-.weight-display .limit { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--muted); }
-.weight-bar { height: 8px; background: rgba(201,168,76,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
-.weight-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background 0.4s ease; background: var(--teal); }
-.weight-bar-fill.warn { background: var(--gold); }
-.weight-bar-fill.over { background: var(--rust); }
-.weight-status { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-
-.weight-limit-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
-.weight-limit-row label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
-.weight-limit-row input { background: transparent; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--paper); font-family: 'DM Mono', monospace; font-size: 13px; padding: 4px 9px; width: 70px; }
-.weight-limit-row input:focus { outline: none; border-color: var(--gold); }
-
-.weight-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 7px; }
-.weight-item-name { flex: 1; font-size: 0.9rem; color: var(--paper); }
-.weight-item-cat { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-right: 4px; }
-.weight-kg { background: transparent; border: 1px solid var(--border); border-radius: 3px; color: var(--paper); font-family: 'DM Mono', monospace; font-size: 12px; padding: 3px 7px; width: 65px; text-align: right; }
-.weight-kg:focus { outline: none; border-color: var(--gold); }
-.weight-unit { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-
-/* footer note */
-.foot-note { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); line-height: 1.7; }
-.foot-note a { color: var(--gold-dim); text-decoration: none; }
-.foot-note a:hover { color: var(--gold); }
-
-/* back link */
-.back-link { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-decoration: none; letter-spacing: 0.07em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 1rem; padding-top: 1rem; transition: color 0.15s; }
-.back-link:hover { color: var(--gold); }
-
-@media (max-width: 520px) {
-  .item-right { display: none; }
-  .budget-table .sek-col { display: none; }
+/* TAB BAR */
+.tab-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:var(--surface);
+  border-top:1px solid var(--border2);
+  display:flex;
+  padding:8px 0;
+  padding-bottom:max(10px, var(--safe-bottom));
+  z-index:100;
 }
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;opacity:.4;transition:opacity .2s}
+.tab-btn.active{opacity:1}
+.tab-icon{font-size:20px;line-height:1}
+.tab-label{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--cream-dim)}
+.tab-btn.active .tab-label{color:var(--gold)}
+
+/* SECTION HEADS */
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 7px}
+.sec-label{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:.1em;color:var(--cream-dim);text-transform:uppercase}
+.count-badge{font-size:10px;padding:2px 8px;border-radius:100px;background:var(--surface2);color:var(--cream-dim);border:.5px solid var(--border2);font-family:'Syne',sans-serif}
+
+/* ADD ROW */
+.add-row{display:flex;gap:8px;padding:12px 16px}
+.add-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--cream);font-family:'Inter',sans-serif;outline:none;min-width:0}
+.add-input::placeholder{color:var(--cream-dim);opacity:.5}
+.add-input:focus{border-color:rgba(245,200,66,.45)}
+.add-input-sm{width:64px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 8px;font-size:13px;color:var(--cream);font-family:'Syne',sans-serif;outline:none;text-align:center}
+.add-input-sm::placeholder{color:var(--cream-dim);opacity:.5}
+.add-input-sm:focus{border-color:rgba(245,200,66,.45)}
+.add-btn{background:var(--gold);border:none;border-radius:10px;width:42px;height:42px;color:#0d0c0a;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.add-btn:active{transform:scale(.95)}
+
+/* TAG SELECT */
+.tag-select{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 8px;font-size:12px;color:var(--cream-dim);font-family:'Syne',sans-serif;outline:none;cursor:pointer}
+.tag-select:focus{border-color:rgba(245,200,66,.45)}
+.tag-select option{background:#221c14}
+
+/* ITEM ROWS */
+.item-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);position:relative}
+.item-row:active{background:rgba(255,255,255,.03)}
+.check-circle{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.item-row.done .check-circle{background:var(--green);border-color:var(--green)}
+.check-circle svg{display:none}
+.item-row.done .check-circle svg{display:block}
+.item-name{flex:1;font-size:14px;color:var(--cream);cursor:pointer;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-row.done .item-name{text-decoration:line-through;opacity:.45}
+.item-meta{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.item-weight{font-size:11px;color:var(--cream-dim);font-family:'Syne',sans-serif;min-width:30px;text-align:right}
+.delete-btn{background:none;border:none;color:var(--cream-dim);opacity:0;font-size:16px;cursor:pointer;padding:2px 0 2px 4px;transition:opacity .2s;flex-shrink:0}
+.item-row:hover .delete-btn{opacity:.5}
+.item-row:hover .delete-btn:hover{opacity:1;color:var(--red)}
+
+/* TAGS */
+.tag{font-size:10px;padding:2px 7px;border-radius:100px;font-family:'Syne',sans-serif;letter-spacing:.04em;flex-shrink:0}
+.tag.family{background:rgba(196,92,38,.2);color:#e08060;border:.5px solid rgba(196,92,38,.35)}
+.tag.self{background:rgba(245,200,66,.1);color:var(--gold-dim);border:.5px solid rgba(245,200,66,.2)}
+.tag.done-tag{background:rgba(74,158,107,.15);color:#6dbe90;border:.5px solid rgba(74,158,107,.3)}
+
+/* BUDGET */
+.budget-total-card{background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:16px;margin:14px 16px 4px}
+.bt-label{font-size:10px;color:var(--cream-dim);font-family:'Syne',sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.bt-inr{font-family:'Syne',sans-serif;font-size:30px;font-weight:700;color:var(--gold);line-height:1}
+.bt-sek{font-size:12px;color:var(--cream-dim);margin-top:4px}
+.bt-bar-track{height:4px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden;margin-top:12px}
+.bt-bar-fill{height:100%;border-radius:100px;background:var(--gold);transition:width .4s ease}
+.bt-bar-fill.warn{background:var(--amber)}
+.bt-bar-fill.danger{background:var(--red)}
+.bt-legend{display:flex;justify-content:space-between;margin-top:5px}
+.bt-legend span{font-size:10px;color:var(--cream-dim);font-family:'Syne',sans-serif}
+.budget-limit-row{display:flex;align-items:center;gap:8px;padding:6px 16px 2px}
+.budget-limit-label{font-size:12px;color:var(--cream-dim)}
+.budget-limit-input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;outline:none;width:110px;text-align:right}
+.budget-limit-input:focus{border-color:rgba(245,200,66,.45)}
+
+.expense-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)}
+.expense-name{flex:1;font-size:13px;color:var(--cream);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.expense-prices{text-align:right;flex-shrink:0}
+.expense-inr{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--cream)}
+.expense-sek{font-size:10px;color:var(--cream-dim)}
+.exp-del-btn{background:none;border:none;color:var(--cream-dim);opacity:0;font-size:15px;cursor:pointer;padding:2px 4px;transition:opacity .2s}
+.expense-row:hover .exp-del-btn{opacity:.4}
+.expense-row:hover .exp-del-btn:hover{opacity:1;color:var(--red)}
+
+/* STORES */
+.customs-banner{margin:12px 16px 0;background:rgba(196,92,38,.1);border:1px solid rgba(196,92,38,.25);border-radius:10px;padding:12px 14px}
+.customs-title{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#e08060;margin-bottom:5px}
+.customs-text{font-size:12px;color:var(--cream-dim);line-height:1.5}
+.customs-nums{display:flex;gap:16px;margin-top:8px}
+.customs-num{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:#e08060}
+.customs-num span{font-size:10px;font-weight:400;color:var(--cream-dim);display:block}
+
+.store-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin:0 16px 10px;padding:14px}
+.store-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px}
+.store-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--cream)}
+.store-area{font-size:11px;color:var(--cream-dim);margin-top:2px}
+.store-badge{font-size:10px;padding:3px 9px;border-radius:100px;font-family:'Syne',sans-serif;letter-spacing:.04em;flex-shrink:0}
+.store-badge.gold{background:rgba(245,200,66,.12);color:var(--gold-dim);border:.5px solid rgba(245,200,66,.25)}
+.store-badge.green{background:rgba(74,158,107,.15);color:#6dbe90;border:.5px solid rgba(74,158,107,.3)}
+.store-badge.terra{background:rgba(196,92,38,.15);color:#e08060;border:.5px solid rgba(196,92,38,.3)}
+.store-tip{font-size:12px;color:var(--cream-dim);line-height:1.6}
+
+/* WEIGHT TAB */
+.pack-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px 0}
+.pack-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px}
+.pc-label{font-size:10px;color:var(--cream-dim);font-family:'Syne',sans-serif;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.pc-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--cream);line-height:1}
+.pc-val.good{color:var(--green)}
+.pc-val.warn{color:var(--amber)}
+.pc-val.danger{color:var(--red)}
+.pc-sub{font-size:11px;color:var(--cream-dim);margin-top:3px}
+
+.remaining-pill{display:inline-flex;align-items:center;gap:6px;margin:12px 16px 0;background:rgba(74,158,107,.12);border:1px solid rgba(74,158,107,.28);border-radius:100px;padding:7px 14px;font-family:'Syne',sans-serif;font-size:12px;color:#6dbe90}
+.remaining-pill.warn{background:rgba(224,140,26,.1);border-color:rgba(224,140,26,.3);color:var(--amber)}
+.remaining-pill.danger{background:rgba(217,64,64,.1);border-color:rgba(217,64,64,.3);color:var(--red)}
+.rp-dot{width:6px;height:6px;border-radius:50%;background:#6dbe90;flex-shrink:0}
+.remaining-pill.warn .rp-dot{background:var(--amber)}
+.remaining-pill.danger .rp-dot{background:var(--red)}
+
+.cat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border)}
+.cat-left{display:flex;align-items:center;gap:10px}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cat-name{font-size:13px;color:var(--cream)}
+.cat-kg{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--cream-dim)}
+
+.airline-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin:0 16px;padding:14px}
+.airline-rule{font-size:12px;color:var(--cream-dim);line-height:1.8}
+.airline-rule strong{color:var(--cream);font-size:13px}
+.airline-warn{font-size:11px;color:#e08060;margin-top:6px;display:block}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 24px;color:var(--cream-dim)}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:13px;line-height:1.6}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + var(--safe-bottom));width:100%;max-width:430px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--cream);margin-bottom:16px;letter-spacing:.04em}
+.modal-row{display:flex;gap:8px;margin-bottom:10px}
+.modal-label{font-size:12px;color:var(--cream-dim);margin-bottom:4px;font-family:'Syne',sans-serif;letter-spacing:.04em}
+.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 12px;font-size:14px;color:var(--cream);font-family:'Inter',sans-serif;outline:none}
+.modal-input:focus{border-color:rgba(245,200,66,.45)}
+.modal-select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 12px;font-size:13px;color:var(--cream);font-family:'Syne',sans-serif;outline:none;cursor:pointer}
+.modal-select option{background:#221c14}
+.modal-btns{display:flex;gap:8px;margin-top:14px}
+.btn-cancel{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px;font-size:14px;color:var(--cream-dim);font-family:'Syne',sans-serif;cursor:pointer}
+.btn-save{flex:2;background:var(--gold);border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;color:#0d0c0a;font-family:'Syne',sans-serif;cursor:pointer}
+.btn-cancel:active,.btn-save:active{transform:scale(.98)}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:6px 0}
 </style>
 </head>
 <body>
-<div class="app">
-  <a class="back-link" href="/">← resväska</a>
 
-  <div class="header">
-    <div class="header-top">
-      <a class="wordmark" href="/">resväska</a>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);">🇮🇳 → 🇸🇪</span>
-    </div>
-    <h1>The India <em>haul</em> planner</h1>
-    <p>What to buy there, what it costs, where to find it, how much it weighs.</p>
+<!-- WEIGHT BAR -->
+<div class="weight-bar">
+  <div class="weight-top">
+    <span class="weight-label">Bag weight</span>
+    <span class="weight-nums"><span class="w-cur" id="w-cur">0.0 kg</span><span class="w-lim"> / <span id="w-limit-display">23</span> kg</span></span>
   </div>
+  <div class="weight-track"><div class="weight-fill" id="w-fill" style="width:0%"></div></div>
+  <div class="weight-footer">
+    <span class="customs-pill">₹50k · SEK 4,500 customs limit</span>
+    <span class="remaining-text" id="w-remaining">23.0 kg remaining</span>
+  </div>
+</div>
 
-  <nav class="tab-nav" role="tablist">
-    <button class="tab-btn active" onclick="switchTab('checklist')" role="tab">Checklist</button>
-    <button class="tab-btn" onclick="switchTab('budget')" role="tab">Budget</button>
-    <button class="tab-btn" onclick="switchTab('stores')" role="tab">Store guide</button>
-    <button class="tab-btn" onclick="switchTab('weight')" role="tab">Pack weight</button>
-  </nav>
+<!-- CONTENT -->
+<div class="content">
 
-  <!-- ─── CHECKLIST TAB ─── -->
+  <!-- CHECKLIST TAB -->
   <div id="tab-checklist" class="tab-panel active">
-    <div class="stat-row">
-      <div class="stat-box"><div class="n" id="st-total">0</div><div class="l">items</div></div>
-      <div class="stat-box"><div class="n" id="st-done">0</div><div class="l">checked off</div></div>
-      <div class="stat-box"><div class="n" id="st-savings">₹0</div><div class="l">est. savings</div></div>
-      <div class="stat-box"><div class="n" id="st-must">0</div><div class="l">must-gets left</div></div>
+    <div class="add-row" style="padding-top:14px">
+      <input class="add-input" id="new-item-name" placeholder="Add item — saree, supplements, kajal..." />
     </div>
 
-    <div class="filter-row" id="cat-filters"></div>
-    <div id="checklist-body"></div>
+    <div id="checklist-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">🧳</div>
+      <div class="empty-text">Nothing in the list yet.<br>Add your first item above.</div>
+    </div>
 
-    <p class="foot-note">
-      Customs tip: India allows INR 50,000 duty-free per person (Indian passport). Swedish customs: items for personal use under 4,500 SEK typically clear without duty — keep receipts just in case. Rules change; always verify before you fly.<br><br>
-      Made for Stockholm desis · <a href="https://ko-fi.com/shamathakur" target="_blank">ko-fi</a> · <a href="https://resvaska-roundtrip.vercel.app">resväska</a>
-    </p>
+    <div id="section-family">
+      <div class="sec-head">
+        <span class="sec-label">Family requests</span>
+        <span class="count-badge" id="family-count">0 items</span>
+      </div>
+      <div id="family-list"></div>
+    </div>
+
+    <div id="section-self">
+      <div class="sec-head">
+        <span class="sec-label">Your wishlist</span>
+        <span class="count-badge" id="self-count">0 items</span>
+      </div>
+      <div id="self-list"></div>
+    </div>
   </div>
 
-  <!-- ─── BUDGET TAB ─── -->
+  <!-- BUDGET TAB -->
   <div id="tab-budget" class="tab-panel">
-    <div class="stat-row">
-      <div class="stat-box"><div class="n" id="b-spend">₹0</div><div class="l">estimated spend</div></div>
-      <div class="stat-box"><div class="n" id="b-budget">₹0</div><div class="l">your budget</div></div>
-      <div class="stat-box"><div class="n" id="b-sek">0 SEK</div><div class="l">total SEK savings</div></div>
+    <div class="budget-total-card">
+      <div class="bt-label">Total spend so far</div>
+      <div class="bt-inr" id="bt-inr">₹ 0</div>
+      <div class="bt-sek" id="bt-sek">≈ SEK 0 saved vs Stockholm</div>
+      <div class="bt-bar-track"><div class="bt-bar-fill" id="bt-bar" style="width:0%"></div></div>
+      <div class="bt-legend"><span>₹0</span><span id="bt-limit-label">Budget: ₹50,000</span></div>
+    </div>
+    <div class="budget-limit-row">
+      <span class="budget-limit-label">Budget limit ₹</span>
+      <input class="budget-limit-input" id="budget-limit-input" type="number" value="50000" placeholder="50000" />
     </div>
 
-    <div class="budget-bar-wrap">
-      <div class="budget-bar-label">
-        <span id="b-bar-label">spend vs budget</span>
-        <span id="b-bar-pct">0%</span>
+    <div class="sec-head" style="margin-top:8px">
+      <span class="sec-label">Expenses</span>
+    </div>
+    <div id="expense-list"></div>
+
+    <div id="budget-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">💸</div>
+      <div class="empty-text">No expenses yet.<br>Add items with ₹ prices in the Checklist.</div>
+    </div>
+
+    <div style="padding:14px 16px 4px">
+      <div class="sec-label" style="margin-bottom:8px">Add expense</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input class="add-input" style="flex:2" id="exp-name" placeholder="Item name" />
+        <input class="add-input-sm" id="exp-inr" type="number" placeholder="₹" />
       </div>
-      <div class="budget-bar"><div class="budget-bar-fill" id="b-bar" style="width:0%"></div></div>
+      <button class="add-btn" style="width:100%;border-radius:10px;height:40px;font-size:14px;font-weight:600;font-family:'Syne',sans-serif" onclick="addExpense()">+ Add expense</button>
     </div>
-
-    <div class="budget-header">
-      <div class="budget-input-group">
-        <label>Budget (₹)</label>
-        <input type="number" id="budget-limit" value="30000" oninput="saveBudget()">
-      </div>
-    </div>
-
-    <table class="budget-table">
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Category</th>
-          <th>Est. cost (₹)</th>
-          <th class="sek-col">SEK saved</th>
-        </tr>
-      </thead>
-      <tbody id="budget-body"></tbody>
-      <tfoot>
-        <tr class="budget-total-row">
-          <td colspan="2" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.07em;">Total</td>
-          <td style="font-family:'DM Mono',monospace;font-size:1rem;color:var(--gold);text-align:right;" id="b-total-cell">₹0</td>
-          <td class="sek-col sek-saved" id="b-sek-total">0 SEK</td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <p class="foot-note" style="margin-top:1.5rem;">Cost estimates are rough 2026 averages. Actual prices vary by city, store, and whether you find a sale. Edit the ₹ fields to match what you actually plan to spend.</p>
   </div>
 
-  <!-- ─── STORE GUIDE TAB ─── -->
+  <!-- STORES TAB -->
   <div id="tab-stores" class="tab-panel">
-    <div class="city-nav" id="city-nav"></div>
-    <div id="store-body"></div>
-    <p class="foot-note">Links go to online stores. For physical locations, search the brand name + city on Google Maps. Lenskart, Bata, and FirstCry have 500+ stores across India.</p>
+    <div class="customs-banner">
+      <div class="customs-title">Customs limit — India</div>
+      <div class="customs-text">Personal-use goods allowed duty-free up to the limit. Anything over may be taxed at the airport.</div>
+      <div class="customs-nums">
+        <div class="customs-num">₹ 50,000<span>cash + goods</span></div>
+        <div class="customs-num">≈ SEK 4,500<span>equivalent</span></div>
+      </div>
+    </div>
+
+    <div class="sec-head"><span class="sec-label">Where to go</span></div>
+
+    <div class="store-card">
+      <div class="store-top">
+        <div><div class="store-name">Fabindia</div><div class="store-area">Connaught Place · Khan Market · Linking Road · most cities</div></div>
+        <span class="store-badge gold">Textiles</span>
+      </div>
+      <div class="store-tip">Sarees, kurtas, dupattas, home linen. Quality is reliable, no bargaining. Good for gifting — comes with nice bags.</div>
+    </div>
+
+    <div class="store-card">
+      <div class="store-top">
+        <div><div class="store-name">Khari Baoli</div><div class="store-area">Old Delhi (Chandni Chowk area)</div></div>
+        <span class="store-badge gold">Spices + dry goods</span>
+      </div>
+      <div class="store-tip">Asia's largest spice market. Methi, ajwain, dried amla, chaat masala in bulk — fraction of Stockholm prices. Go early on a weekday.</div>
+    </div>
+
+    <div class="store-card">
+      <div class="store-top">
+        <div><div class="store-name">Apollo / MedPlus / 1mg</div><div class="store-area">Any city — also online</div></div>
+        <span class="store-badge green">Pharmacy</span>
+      </div>
+      <div class="store-tip">Ashwagandha, Triphala, Brahmi, Ayurvedic supplements, skincare actives. Generic pharma is 80–90% cheaper than Sweden. Carry prescriptions for any Rx items.</div>
+    </div>
+
+    <div class="store-card">
+      <div class="store-top">
+        <div><div class="store-name">Lajpat Nagar Central Market</div><div class="store-area">South Delhi</div></div>
+        <span class="store-badge terra">Everything</span>
+      </div>
+      <div class="store-tip">Ethnic wear, home décor, bangles, cosmetics. Good saree shops with tailoring options. Weekday mornings — weekend crowds are real.</div>
+    </div>
+
+    <div class="store-card">
+      <div class="store-top">
+        <div><div class="store-name">Dadar / Crawford Market</div><div class="store-area">Mumbai</div></div>
+        <span class="store-badge terra">Wholesale</span>
+      </div>
+      <div class="store-tip">Flowers, fabric, electronics, kitchenware. Cash preferred everywhere. Great for bulk spices and last-minute household items.</div>
+    </div>
+
+    <div class="store-card" style="margin-bottom:4px">
+      <div class="store-top">
+        <div><div class="store-name">Nalli / Pothys / Kanchipuram shops</div><div class="store-area">Chennai · Kanchipuram</div></div>
+        <span class="store-badge gold">Silk sarees</span>
+      </div>
+      <div class="store-tip">For serious silk purchases — Kanjivaram, Banarasi, Mysore silk. Direct-from-weaver pricing. Bring extra luggage allowance.</div>
+    </div>
   </div>
 
-  <!-- ─── WEIGHT TAB ─── -->
+  <!-- WEIGHT TAB -->
   <div id="tab-weight" class="tab-panel">
-    <div class="weight-bar-wrap">
-      <div class="weight-display">
-        <span class="big" id="w-total">0.0</span>
-        <span class="of">kg of</span>
-        <span class="limit" id="w-limit-display">23</span>
-        <span class="of">kg</span>
+    <div class="pack-grid">
+      <div class="pack-card">
+        <div class="pc-label">Packed</div>
+        <div class="pc-val" id="pw-packed">0.0</div>
+        <div class="pc-sub">kg packed</div>
       </div>
-      <div class="weight-bar"><div class="weight-bar-fill" id="w-bar" style="width:0%"></div></div>
-      <div class="weight-status" id="w-status">add item weights below</div>
+      <div class="pack-card">
+        <div class="pc-label">Remaining</div>
+        <div class="pc-val" id="pw-remaining">23.0</div>
+        <div class="pc-sub">kg left</div>
+      </div>
+      <div class="pack-card">
+        <div class="pc-label">Items</div>
+        <div class="pc-val" id="pw-items">0</div>
+        <div class="pc-sub">in list</div>
+      </div>
+      <div class="pack-card">
+        <div class="pc-label">Unsorted</div>
+        <div class="pc-val" id="pw-unsorted">0</div>
+        <div class="pc-sub">still pending</div>
+      </div>
     </div>
 
-    <div class="weight-limit-row">
-      <label>Bag limit (kg)</label>
-      <input type="number" id="w-limit" value="23" min="10" max="50" oninput="updateWeight()">
+    <div class="remaining-pill" id="pw-pill">
+      <span class="rp-dot"></span>
+      <span id="pw-pill-text">0.0 kg remaining — within limit</span>
     </div>
 
-    <div id="weight-body"></div>
-    <p class="foot-note">Most carriers allow 23kg checked baggage. Indigo/Air India economy: 15–20kg. Business: 30–40kg. Check your ticket. Leave ~2kg buffer — scales at home aren't always accurate.</p>
+    <div class="sec-head" style="margin-top:8px"><span class="sec-label">By category</span></div>
+    <div id="cat-breakdown"></div>
+
+    <div class="sec-head" style="margin-top:6px"><span class="sec-label">Airline rules</span></div>
+    <div style="padding:0 16px 16px">
+      <div class="airline-card">
+        <div class="airline-rule">
+          <strong>Economy (most airlines)</strong><br>
+          Checked: 23 kg &nbsp;·&nbsp; Cabin: 7 kg<br>
+          <strong>Business / Premium Economy</strong><br>
+          Checked: 32 kg &nbsp;·&nbsp; Cabin: 10 kg<br>
+          <span class="airline-warn">Overweight fee: ~₹500–800 per extra kg. Weigh at home before you leave.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head"><span class="sec-label">Weight limit</span></div>
+    <div style="padding:0 16px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:var(--cream-dim)">Limit (kg)</span>
+      <input class="add-input-sm" id="weight-limit-input" type="number" value="23" min="1" max="50" style="width:70px" />
+    </div>
   </div>
 
 </div>
 
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('checklist',this)" aria-label="Checklist">
+    <span class="tab-icon">📋</span>
+    <span class="tab-label">Checklist</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('budget',this)" aria-label="Budget">
+    <span class="tab-icon">💰</span>
+    <span class="tab-label">Budget</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('stores',this)" aria-label="Store guide">
+    <span class="tab-icon">🛍️</span>
+    <span class="tab-label">Stores</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('weight',this)" aria-label="Weight tracker">
+    <span class="tab-icon">⚖️</span>
+    <span class="tab-label">Weight</span>
+  </button>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div class="modal-overlay" id="item-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">Add item</div>
+    <div style="margin-bottom:10px">
+      <div class="modal-label">Item name</div>
+      <input class="modal-input" id="modal-name" placeholder="e.g. Kanjivaram saree" />
+    </div>
+    <div class="modal-row">
+      <div style="flex:1">
+        <div class="modal-label">Weight (kg)</div>
+        <input class="modal-input" id="modal-weight" type="number" step="0.1" min="0" placeholder="0.5" />
+      </div>
+      <div style="flex:1">
+        <div class="modal-label">Price (₹)</div>
+        <input class="modal-input" id="modal-price" type="number" step="100" min="0" placeholder="0" />
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="modal-label">Type</div>
+      <select class="modal-select" id="modal-type">
+        <option value="family">Family request</option>
+        <option value="self" selected>My wishlist</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeItemModal()">Cancel</button>
+      <button class="btn-save" onclick="saveItem()">Add to list</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const ITEMS = [
-  { id:'v1', cat:'vision', name:'Contact lenses (6-month supply)', meta:'Same brand, 60-70% cheaper. Order exact power before you land.', savings:8000, sekSaved:800, defCost:2500, link:'https://www.lenskart.com/contact-lenses.html', priority:'must', kg:0.3 },
-  { id:'v2', cat:'vision', name:'Prescription glasses (2 pairs)', meta:'Daily + backup. Lenskart frames + lens from ₹1,500. Vs 2,500 SEK in Sweden.', savings:12000, sekSaved:1200, defCost:3500, link:'https://www.lenskart.com', priority:'must', kg:0.3 },
-  { id:'v3', cat:'vision', name:'Blue-light glasses (non-rx)', meta:'For screen work. ₹500–800 vs 600 SEK in Sweden.', savings:3000, sekSaved:300, defCost:600, link:'https://www.amazon.in/s?k=blue+light+glasses', priority:'high', kg:0.2 },
-  { id:'i1', cat:'ivaan', name:"Superhero / colorful t-shirts (×10)", meta:'Sizes up — buy 1 size ahead. FirstCry, H&M India, Miniklub.', savings:3500, sekSaved:350, defCost:1500, link:'https://www.firstcry.com/kids/boys-tshirts', priority:'must', kg:0.8 },
-  { id:'i2', cat:'ivaan', name:"Cotton nightwear sets (×5)", meta:'Pure cotton. Harder to find at this quality in Sweden without overpaying.', savings:2500, sekSaved:250, defCost:1200, link:'https://www.amazon.in/s?k=toddler+cotton+nightwear+boys', priority:'must', kg:0.6 },
-  { id:'i3', cat:'ivaan', name:"Kurta sets for festivals (×3)", meta:'Festive + casual. Adorable and cheap at ₹300–500 each.', savings:2000, sekSaved:200, defCost:1200, link:'https://www.firstcry.com/kids/boys-ethnic-wear', priority:'high', kg:0.4 },
-  { id:'i4', cat:'ivaan', name:"Sandals + indoor shoes (×2)", meta:'Bata or Hopscotch. Swedish toddler shoes: 300–500 SEK. India: ₹400.', savings:4000, sekSaved:400, defCost:800, link:'https://www.bata.com/in/kids', priority:'high', kg:0.5 },
-  { id:'i5', cat:'ivaan', name:"Swimwear + sun hat", meta:'For Indian heat + Swedish summer. Cheap on FirstCry.', savings:1000, sekSaved:100, defCost:400, link:'https://www.firstcry.com', priority:'nice', kg:0.2 },
-  { id:'h1', cat:'health', name:'Multivitamins (1-year supply)', meta:'Revital, Supradyn — 4–5x cheaper than Sweden. Sealed packaging travels fine.', savings:4000, sekSaved:400, defCost:1200, link:'https://www.1mg.com/categories/vitamins-minerals', priority:'must', kg:0.8 },
-  { id:'h2', cat:'health', name:'Ayurvedic hair oil (Brahmi/Bhringraj)', meta:'Kama Ayurveda or Patanjali. Not meaningfully available in Sweden.', savings:1500, sekSaved:150, defCost:600, link:'https://www.amazon.in/s?k=brahmi+hair+oil', priority:'high', kg:0.6 },
-  { id:'h3', cat:'health', name:'Ubtan / face packs', meta:'Forest Essentials or Biotique. Swedish equivalent is 10x the price.', savings:2000, sekSaved:200, defCost:800, link:'https://www.nykaa.com/ubtan', priority:'high', kg:0.4 },
-  { id:'h4', cat:'health', name:'Feminine hygiene products (3-month bulk)', meta:'Whisper, Sofy — 3–4x cheaper. Flat, pack easily.', savings:1000, sekSaved:100, defCost:500, link:'https://www.amazon.in/s?k=sanitary+pads+bulk', priority:'nice', kg:0.5 },
-  { id:'k1', cat:'kitchen', name:'Spices — full year set (10+ types)', meta:'Jeera, haldi, hing, chaat, biryani masala. ₹2,000 covers a whole year.', savings:5000, sekSaved:500, defCost:2000, link:'https://www.amazon.in/s?k=spice+set+indian', priority:'must', kg:2.5 },
-  { id:'k2', cat:'kitchen', name:'Dals + lentils (5 kg mix)', meta:'Moong, masoor, chana, toor. Stockholm desi stores charge a premium.', savings:1500, sekSaved:150, defCost:600, link:'https://www.amazon.in/s?k=dal+lentils+bulk', priority:'high', kg:5 },
-  { id:'k3', cat:'kitchen', name:'Chakki atta (5 kg)', meta:'Aashirvaad or Annapurna. Roti texture is just different.', savings:800, sekSaved:80, defCost:350, link:'https://www.bigbasket.com', priority:'high', kg:5 },
-  { id:'k4', cat:'kitchen', name:'Pickles + chutneys (jarred)', meta:"Mother's Recipe or family-made. Mango, lime, garlic.", savings:600, sekSaved:60, defCost:400, link:'https://www.amazon.in/s?k=indian+pickles', priority:'nice', kg:1.5 },
-  { id:'c1', cat:'clothes', name:'Cotton bras + underwear (×10)', meta:'Enamor, Jockey India — same quality, 1/4 the price.', savings:5000, sekSaved:500, defCost:2000, link:'https://www.amazon.in/s?k=enamor+bra', priority:'must', kg:0.8 },
-  { id:'c2', cat:'clothes', name:'Cotton nightwear / loungewear (×4)', meta:'Pure cotton sets are rare and expensive in Sweden. ₹400–600 each.', savings:3000, sekSaved:300, defCost:2000, link:'https://www.amazon.in/s?k=women+cotton+nightwear', priority:'high', kg:1 },
-  { id:'c3', cat:'clothes', name:'Kurtas / ethnic wear for events (×2)', meta:'Jaypore, local boutique, or family shopping trip.', savings:4000, sekSaved:400, defCost:3000, link:'https://www.jaypore.com', priority:'high', kg:1 },
-  { id:'c4', cat:'clothes', name:'Sandals / flats (×2)', meta:'Metro or Bata. Swedish summer shoes: 800–1500 SEK. India: ₹600–1200.', savings:5000, sekSaved:500, defCost:1500, link:'https://www.metroshoes.com', priority:'nice', kg:0.8 },
-  { id:'m1', cat:'misc', name:'Steel tiffin boxes / dabbas', meta:"For förskola lunch. Indestructible. ₹300–600 vs 400 SEK in Sweden.", savings:2000, sekSaved:200, defCost:800, link:'https://www.amazon.in/s?k=steel+tiffin+box', priority:'high', kg:1 },
-  { id:'m2', cat:'misc', name:'Incense + dhoop (bulk)', meta:'Cycle, Zed Black. Ritual and home use. Hard to find in Stockholm.', savings:800, sekSaved:80, defCost:400, link:'https://www.amazon.in/s?k=dhoop+incense+bulk', priority:'nice', kg:0.5 },
-  { id:'m3', cat:'misc', name:'Pooja items (diyas, thali, camphor)', meta:'If yours need replacing. Cheap and good quality from local stores.', savings:1000, sekSaved:100, defCost:600, link:'https://www.amazon.in/s?k=pooja+items+steel', priority:'nice', kg:0.8 },
-  { id:'m4', cat:'misc', name:'Hair accessories (bulk pack)', meta:'Bobby pins, scrunchies, clips — almost free in India, silly prices in Sweden.', savings:500, sekSaved:50, defCost:200, link:'https://www.amazon.in/s?k=hair+accessories+bulk', priority:'nice', kg:0.2 },
-];
+// ─── STATE ─────────────────────────────────────────────────────────────────
+const INR_TO_SEK = 0.089;
 
-const CATS = { vision:'👁 Vision', ivaan:'👶 Kids', health:'💊 Health', kitchen:'🫙 Kitchen', clothes:'👗 Clothes', misc:'📦 Daily use' };
-
-const STORES = {
-  online: {
-    label: 'Online (order before you land)',
-    sections: [
-      { title: 'Eyewear', stores: [
-        { name:'Lenskart', desc:'Glasses, contacts, sunglasses. Book eye test online too.', link:'https://www.lenskart.com' },
-        { name:'Specsmakers', desc:'Budget frames, fast turnaround.', link:'https://www.specsmakers.in' },
-        { name:'1mg', desc:'Medicines, contact lens solutions, vitamins.', link:'https://www.1mg.com' },
-      ]},
-      { title: 'Kids clothes', stores: [
-        { name:'FirstCry', desc:'Best range for toddler clothes, shoes, gear.', link:'https://www.firstcry.com' },
-        { name:'Hopscotch', desc:'Colourful, fun prints. Good for 1–8 year olds.', link:'https://www.hopscotch.in' },
-        { name:'Miniklub', desc:'Affordable cotton basics for toddlers.', link:'https://www.miniklub.in' },
-      ]},
-      { title: 'Women\'s clothing + ethnic wear', stores: [
-        { name:'Jaypore', desc:'Curated ethnic + indie labels. Ships nationwide.', link:'https://www.jaypore.com' },
-        { name:'Myntra', desc:'Jockey, Enamor, mainstream fashion.', link:'https://www.myntra.com' },
-        { name:'Nykaa Fashion', desc:'Good for kurtas, occasion wear.', link:'https://www.nykaafashion.com' },
-      ]},
-      { title: 'Groceries + kitchen', stores: [
-        { name:'BigBasket', desc:'Atta, dal, spices, pickles. Delivery to most cities.', link:'https://www.bigbasket.com' },
-        { name:'Amazon.in', desc:'Bulk spice sets, steel dabbas, kitchen items.', link:'https://www.amazon.in' },
-        { name:'JioMart', desc:'Grocery delivery, good for staples in bulk.', link:'https://www.jiomart.com' },
-      ]},
-      { title: 'Beauty + wellness', stores: [
-        { name:'Nykaa', desc:'Ubtan, face packs, Kama Ayurveda, all beauty brands.', link:'https://www.nykaa.com' },
-        { name:'Purplle', desc:'Good deals on Biotique, Forest Essentials, Mamaearth.', link:'https://www.purplle.com' },
-      ]},
-    ]
-  },
-  pune: {
-    label: 'Pune',
-    sections: [
-      { title: 'Eyewear', stores: [
-        { name:'Lenskart — FC Road', desc:'Popular store, full service. FC Road, Deccan.', link:'https://www.lenskart.com/stores' },
-        { name:'Lenskart — Aundh', desc:'Good for families, easy parking.', link:'https://www.lenskart.com/stores' },
-        { name:'Lawrence & Mayo — MG Road', desc:'Premium frames, optician on site.', link:'https://www.lawrenceandmayo.co.in' },
-      ]},
-      { title: 'Kids + family', stores: [
-        { name:'FirstCry — Baner', desc:'Large store, full range for 0–12 years.', link:'https://www.firstcry.com/stores' },
-        { name:'Westside / Tata Cliq — Phoenix', desc:'Good affordable kids section.', link:'https://www.westside.com' },
-        { name:'Bata — FC Road / Camp', desc:'Kids shoes ₹300–800.', link:'https://www.bata.com/in' },
-      ]},
-      { title: 'Ethnic wear', stores: [
-        { name:'Fab India — Koregaon Park', desc:'Cotton kurtas, home goods, reliable quality.', link:'https://www.fabindia.com' },
-        { name:'Phadke saree / Laxmi Road', desc:'Local ethnic wear, great prices.', link:'https://maps.google.com/?q=Laxmi+Road+Pune+shopping' },
-        { name:'Tulsi / Apte Road boutiques', desc:'Indie labels, good for occasion wear.', link:'https://maps.google.com/?q=Apte+Road+Pune+boutiques' },
-      ]},
-      { title: 'Grocery + spices', stores: [
-        { name:'D-Mart — multiple locations', desc:'Bulk spices, atta, dal. Best prices in the city.', link:'https://www.dmartindia.com' },
-        { name:'Dorabjee & Co — Camp', desc:'Legacy supermarket, good imported section too.', link:'https://maps.google.com/?q=Dorabjee+Pune' },
-      ]},
-    ]
-  },
-  mumbai: {
-    label: 'Mumbai',
-    sections: [
-      { title: 'Eyewear', stores: [
-        { name:'Lenskart — Bandra / Andheri / Lower Parel', desc:'Multiple stores, book slot online.', link:'https://www.lenskart.com/stores' },
-        { name:'Vision Express — Phoenix Mills', desc:'European frame brands.', link:'https://www.visionexpress.co.in' },
-      ]},
-      { title: 'Kids + family', stores: [
-        { name:'FirstCry — Malad / Powai', desc:'Large format store.', link:'https://www.firstcry.com/stores' },
-        { name:'Bata — Colaba / Linking Road', desc:'Good toddler shoe selection.', link:'https://www.bata.com/in' },
-        { name:'Mothercare — Palladium', desc:'Premium but good range for under-3s.', link:'https://www.mothercareindia.com' },
-      ]},
-      { title: 'Ethnic wear', stores: [
-        { name:'Fab India — Juhu / Bandra', desc:'Reliable cotton kurtas.', link:'https://www.fabindia.com' },
-        { name:'Colaba Causeway', desc:'Street shopping for jewellery, accessories, fabric.', link:'https://maps.google.com/?q=Colaba+Causeway+Mumbai' },
-        { name:'Linking Road, Bandra', desc:'Everything from clothes to accessories at good prices.', link:'https://maps.google.com/?q=Linking+Road+Bandra+Mumbai' },
-      ]},
-    ]
-  },
-  delhi: {
-    label: 'Delhi / NCR',
-    sections: [
-      { title: 'Eyewear', stores: [
-        { name:'Lenskart HQ — multiple Delhi stores', desc:'Largest selection in India.', link:'https://www.lenskart.com/stores' },
-        { name:'GKB Opticals — Connaught Place', desc:'Premium frames, longstanding reputation.', link:'https://www.gkboptical.com' },
-      ]},
-      { title: 'Kids + family', stores: [
-        { name:'FirstCry — Select Citywalk, Saket', desc:'Big store, good range.', link:'https://www.firstcry.com/stores' },
-        { name:'Janpath Market', desc:'Kids ethnic kurtas, costume jewellery, accessories.', link:'https://maps.google.com/?q=Janpath+Market+Delhi' },
-      ]},
-      { title: 'Ethnic wear + fabric', stores: [
-        { name:'Fab India — multiple locations', desc:'Safe bet for cotton ethnic wear.', link:'https://www.fabindia.com' },
-        { name:'Lajpat Nagar Central Market', desc:'Fabric, readymade, tailors. Best prices in Delhi.', link:'https://maps.google.com/?q=Lajpat+Nagar+Central+Market' },
-        { name:'Sarojini Nagar Market', desc:'Export surplus clothes at throwaway prices.', link:'https://maps.google.com/?q=Sarojini+Nagar+Market+Delhi' },
-      ]},
-      { title: 'Grocery + spices', stores: [
-        { name:'Khari Baoli Spice Market, Old Delhi', desc:'Asia\'s largest spice market. Buy in bulk.', link:'https://maps.google.com/?q=Khari+Baoli+Delhi' },
-        { name:'D-Mart / Big Bazaar', desc:'Bulk grocery staples.', link:'https://www.dmartindia.com' },
-      ]},
-    ]
-  },
-  bangalore: {
-    label: 'Bangalore',
-    sections: [
-      { title: 'Eyewear', stores: [
-        { name:'Lenskart — Indiranagar / Koramangala', desc:'Multiple stores, fast service.', link:'https://www.lenskart.com/stores' },
-        { name:'Specsmakers — multiple', desc:'Budget-friendly, good for extras.', link:'https://www.specsmakers.in' },
-      ]},
-      { title: 'Kids + family', stores: [
-        { name:'FirstCry — Whitefield / Jayanagar', desc:'Full-range store.', link:'https://www.firstcry.com/stores' },
-        { name:'Bata — Commercial Street', desc:'Toddler + kids shoes at good prices.', link:'https://www.bata.com/in' },
-      ]},
-      { title: 'Ethnic wear', stores: [
-        { name:'Commercial Street', desc:'Everything: clothes, accessories, fabric, shoes.', link:'https://maps.google.com/?q=Commercial+Street+Bangalore' },
-        { name:'Fab India — Koramangala / Indiranagar', desc:'Cotton kurtas, home goods.', link:'https://www.fabindia.com' },
-        { name:'Chikpet', desc:'Silk sarees, traditional wear, jewellery.', link:'https://maps.google.com/?q=Chikpet+Bangalore' },
-      ]},
-    ]
-  },
-};
-
-// ─── STATE ───
 let state = {
-  checked: [],
-  costs: {},
-  weights: {},
-  budgetLimit: 30000,
-  bagLimit: 23,
-  activeFilter: 'all',
-  activeCity: 'online',
+  items: [],
+  expenses: [],
+  budgetLimit: 50000,
+  weightLimit: 23
 };
 
 function loadState() {
   try {
-    const s = localStorage.getItem('resvaska-haul-v1');
-    if (s) Object.assign(state, JSON.parse(s));
+    const s = localStorage.getItem('resvaska-state');
+    if (s) state = { ...state, ...JSON.parse(s) };
   } catch(e) {}
 }
+
 function saveState() {
-  try { localStorage.setItem('resvaska-haul-v1', JSON.stringify(state)); } catch(e) {}
+  try { localStorage.setItem('resvaska-state', JSON.stringify(state)); } catch(e) {}
 }
 
-// ─── TAB SWITCHING ───
-function switchTab(id) {
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
-  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
 }
 
-// ─── CHECKLIST ───
-function buildFilters() {
-  const fr = document.getElementById('cat-filters');
-  let html = '<button class="cat-btn ' + (state.activeFilter==='all'?'on':'') + '" onclick="setFilter(\'all\')">All</button>';
-  for (const [k,v] of Object.entries(CATS)) {
-    html += `<button class="cat-btn ${state.activeFilter===k?'on':''}" onclick="setFilter('${k}')">${v}</button>`;
-  }
-  fr.innerHTML = html;
-}
+// ─── WEIGHT BAR ──────────────────────────────────────────────────────────────
+function updateWeightBar() {
+  const packed = state.items
+    .filter(i => i.done)
+    .reduce((s, i) => s + (parseFloat(i.weight) || 0), 0);
+  const limit = state.weightLimit;
+  const pct = Math.min((packed / limit) * 100, 100);
+  const remaining = Math.max(limit - packed, 0);
 
-function setFilter(cat) {
-  state.activeFilter = cat;
-  saveState();
-  buildFilters();
-  renderChecklist();
-}
+  const fill = document.getElementById('w-fill');
+  const curEl = document.getElementById('w-cur');
+  const remEl = document.getElementById('w-remaining');
 
-function renderChecklist() {
-  const filtered = state.activeFilter === 'all' ? ITEMS : ITEMS.filter(i => i.cat === state.activeFilter);
-  const grouped = {};
-  filtered.forEach(item => {
-    if (!grouped[item.cat]) grouped[item.cat] = [];
-    grouped[item.cat].push(item);
-  });
-
-  let html = '';
-  for (const [cat, items] of Object.entries(grouped)) {
-    if (state.activeFilter === 'all') html += `<div class="section-label">${CATS[cat]}</div>`;
-    items.forEach(item => {
-      const done = state.checked.includes(item.id);
-      const pillClass = item.priority === 'must' ? 'pill-must' : item.priority === 'high' ? 'pill-high' : 'pill-nice';
-      const pillText = item.priority === 'must' ? 'must-get' : item.priority === 'high' ? 'high value' : 'nice to have';
-      html += `<div class="item ${done?'done':''}" onclick="toggleCheck('${item.id}')">
-        <div class="cb"><svg class="check-svg" width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4.5 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="item-body">
-          <div class="item-name">${item.name}</div>
-          <div class="item-meta">${item.meta}</div>
-        </div>
-        <div class="item-right">
-          <span class="pill ${pillClass}">${pillText}</span>
-          <span class="savings-tag">~₹${item.savings.toLocaleString('en-IN')} saved</span>
-          <a class="order-link" href="${item.link}" target="_blank" onclick="event.stopPropagation()">order →</a>
-        </div>
-      </div>`;
-    });
-  }
-  document.getElementById('checklist-body').innerHTML = html;
-  updateChecklistStats();
-}
-
-function toggleCheck(id) {
-  const idx = state.checked.indexOf(id);
-  if (idx > -1) state.checked.splice(idx, 1);
-  else state.checked.push(id);
-  saveState();
-  renderChecklist();
-  renderBudget();
-}
-
-function updateChecklistStats() {
-  const total = ITEMS.length;
-  const done = state.checked.length;
-  const savings = state.checked.reduce((s, id) => {
-    const item = ITEMS.find(i => i.id === id);
-    return s + (item ? item.savings : 0);
-  }, 0);
-  const mustLeft = ITEMS.filter(i => i.priority === 'must' && !state.checked.includes(i.id)).length;
-  document.getElementById('st-total').textContent = total;
-  document.getElementById('st-done').textContent = done;
-  document.getElementById('st-savings').textContent = '₹' + savings.toLocaleString('en-IN');
-  document.getElementById('st-must').textContent = mustLeft;
-}
-
-// ─── BUDGET ───
-function renderBudget() {
-  let html = '';
-  let totalCost = 0;
-  let totalSek = 0;
-  ITEMS.forEach(item => {
-    const cost = state.costs[item.id] !== undefined ? state.costs[item.id] : item.defCost;
-    const sek = Math.round(cost * 0.1);
-    totalCost += Number(cost);
-    totalSek += sek;
-    const done = state.checked.includes(item.id);
-    html += `<tr style="${done?'opacity:0.4':''}">
-      <td style="color:var(--paper)">${item.name}</td>
-      <td><span class="cat-label">${CATS[item.cat]}</span></td>
-      <td style="text-align:right"><input class="cost-input" type="number" value="${cost}" onchange="updateCost('${item.id}', this.value)"></td>
-      <td class="sek-col sek-saved">${sek.toLocaleString()} SEK</td>
-    </tr>`;
-  });
-  document.getElementById('budget-body').innerHTML = html;
-
-  const limit = Number(document.getElementById('budget-limit').value) || 30000;
-  const pct = Math.min(Math.round((totalCost / limit) * 100), 100);
-  const over = totalCost > limit;
-
-  document.getElementById('b-spend').textContent = '₹' + totalCost.toLocaleString('en-IN');
-  document.getElementById('b-budget').textContent = '₹' + limit.toLocaleString('en-IN');
-  document.getElementById('b-sek').textContent = totalSek.toLocaleString() + ' SEK';
-  document.getElementById('b-total-cell').textContent = '₹' + totalCost.toLocaleString('en-IN');
-  document.getElementById('b-sek-total').textContent = totalSek.toLocaleString() + ' SEK';
-  document.getElementById('b-bar').style.width = pct + '%';
-  document.getElementById('b-bar').className = 'budget-bar-fill' + (over ? ' over' : '');
-  document.getElementById('b-bar-pct').textContent = pct + '%';
-  document.getElementById('b-bar-label').textContent = over ? '⚠ over budget' : 'spend vs budget';
-}
-
-function updateCost(id, val) {
-  state.costs[id] = Number(val) || 0;
-  saveState();
-  renderBudget();
-}
-
-function saveBudget() {
-  state.budgetLimit = Number(document.getElementById('budget-limit').value) || 30000;
-  saveState();
-  renderBudget();
-}
-
-// ─── STORE GUIDE ───
-function buildCityNav() {
-  const nav = document.getElementById('city-nav');
-  nav.innerHTML = Object.entries(STORES).map(([k, v]) =>
-    `<button class="city-btn ${state.activeCity===k?'on':''}" onclick="setCity('${k}')">${v.label}</button>`
-  ).join('');
-}
-
-function setCity(city) {
-  state.activeCity = city;
-  saveState();
-  buildCityNav();
-  renderStores();
-}
-
-function renderStores() {
-  const city = STORES[state.activeCity];
-  let html = '';
-  city.sections.forEach(sec => {
-    html += `<div class="store-section"><div class="store-section-title">${sec.title}</div>`;
-    sec.stores.forEach(s => {
-      html += `<div class="store-card">
-        <div class="store-card-body">
-          <div class="store-name">${s.name}</div>
-          <div class="store-desc">${s.desc}</div>
-        </div>
-        <a class="store-link" href="${s.link}" target="_blank">visit →</a>
-      </div>`;
-    });
-    html += `</div>`;
-  });
-  document.getElementById('store-body').innerHTML = html;
-}
-
-// ─── WEIGHT ───
-function renderWeight() {
-  const limit = Number(document.getElementById('w-limit').value) || 23;
-  state.bagLimit = limit;
+  fill.style.width = pct + '%';
   document.getElementById('w-limit-display').textContent = limit;
 
-  let html = '';
-  let total = 0;
-  ITEMS.forEach(item => {
-    const kg = state.weights[item.id] !== undefined ? state.weights[item.id] : '';
-    if (kg !== '') total += Number(kg);
-    const done = state.checked.includes(item.id);
-    html += `<div class="weight-item" style="${done?'opacity:0.45':''}">
-      <span class="weight-item-cat">${CATS[item.cat].split(' ')[0]}</span>
-      <span class="weight-item-name">${item.name}</span>
-      <input class="weight-kg" type="number" step="0.1" min="0" placeholder="${item.kg}" value="${kg}" onchange="updateKg('${item.id}', this.value)" title="kg">
-      <span class="weight-unit">kg</span>
-    </div>`;
+  let cls = '';
+  if (pct >= 95) cls = 'danger';
+  else if (pct >= 80) cls = 'warn';
+
+  fill.className = 'weight-fill' + (cls ? ' ' + cls : '');
+  curEl.className = 'w-cur' + (cls ? ' ' + cls : '');
+  curEl.textContent = packed.toFixed(1) + ' kg';
+
+  remEl.className = 'remaining-text' + (cls ? ' ' + cls : '');
+  remEl.textContent = remaining.toFixed(1) + ' kg remaining';
+}
+
+// ─── CHECKLIST ───────────────────────────────────────────────────────────────
+function renderChecklist() {
+  const family = state.items.filter(i => i.type === 'family');
+  const self = state.items.filter(i => i.type === 'self');
+
+  document.getElementById('family-count').textContent = family.length + ' item' + (family.length !== 1 ? 's' : '');
+  document.getElementById('self-count').textContent = self.length + ' item' + (self.length !== 1 ? 's' : '');
+
+  document.getElementById('section-family').style.display = family.length ? 'block' : 'none';
+  document.getElementById('section-self').style.display = self.length ? 'block' : 'none';
+  document.getElementById('checklist-empty').style.display = state.items.length ? 'none' : 'block';
+
+  renderList('family-list', family);
+  renderList('self-list', self);
+  updateWeightBar();
+  updateWeightTab();
+}
+
+function renderList(containerId, items) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'item-row' + (item.done ? ' done' : '');
+    row.innerHTML = `
+      <div class="check-circle" onclick="toggleItem('${item.id}')">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="item-name" onclick="toggleItem('${item.id}')">${escHtml(item.name)}</span>
+      <div class="item-meta">
+        ${item.done
+          ? '<span class="tag done-tag">Got it</span>'
+          : `<span class="tag ${item.type === 'family' ? 'family' : 'self'}">${item.type === 'family' ? 'Family' : 'Mine'}</span>`
+        }
+        <span class="item-weight">${item.weight ? item.weight + ' kg' : '—'}</span>
+      </div>
+      <button class="delete-btn" onclick="deleteItem('${item.id}')" aria-label="Delete">✕</button>
+    `;
+    el.appendChild(row);
   });
-  document.getElementById('weight-body').innerHTML = html;
+}
 
+function toggleItem(id) {
+  const item = state.items.find(i => i.id === id);
+  if (item) { item.done = !item.done; saveState(); renderChecklist(); }
+}
+
+function deleteItem(id) {
+  state.items = state.items.filter(i => i.id !== id);
+  saveState(); renderChecklist();
+}
+
+// ─── ADD ITEM MODAL ──────────────────────────────────────────────────────────
+function openItemModal() {
+  const nameVal = document.getElementById('new-item-name').value.trim();
+  if (nameVal) document.getElementById('modal-name').value = nameVal;
+  document.getElementById('item-modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-name').focus(), 300);
+}
+
+function closeItemModal() {
+  document.getElementById('item-modal').classList.remove('open');
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-weight').value = '';
+  document.getElementById('modal-price').value = '';
+  document.getElementById('new-item-name').value = '';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('item-modal')) closeItemModal();
+}
+
+function saveItem() {
+  const name = document.getElementById('modal-name').value.trim();
+  if (!name) { document.getElementById('modal-name').focus(); return; }
+  const weight = parseFloat(document.getElementById('modal-weight').value) || 0;
+  const price = parseFloat(document.getElementById('modal-price').value) || 0;
+  const type = document.getElementById('modal-type').value;
+
+  const item = { id: 'i' + Date.now(), name, weight, price, type, done: false };
+  state.items.push(item);
+
+  if (price > 0) {
+    state.expenses.push({ id: 'e' + Date.now(), name, inr: price });
+  }
+
+  saveState();
+  closeItemModal();
+  renderChecklist();
+  renderBudget();
+}
+
+// ─── BUDGET ──────────────────────────────────────────────────────────────────
+function renderBudget() {
+  const total = state.expenses.reduce((s, e) => s + e.inr, 0);
+  const sek = Math.round(total * INR_TO_SEK);
+  const limit = state.budgetLimit;
   const pct = Math.min((total / limit) * 100, 100);
-  const fillClass = total > limit ? 'over' : total > limit * 0.8 ? 'warn' : '';
-  document.getElementById('w-total').textContent = total.toFixed(1);
-  document.getElementById('w-bar').style.width = pct + '%';
-  document.getElementById('w-bar').className = 'weight-bar-fill ' + fillClass;
 
-  let status = '';
-  if (total === 0) status = 'add item weights below';
-  else if (total > limit) status = '⚠ over limit by ' + (total - limit).toFixed(1) + 'kg — trim something';
-  else if (total > limit * 0.8) status = 'getting full — ' + (limit - total).toFixed(1) + 'kg remaining';
-  else status = (limit - total).toFixed(1) + 'kg remaining';
-  document.getElementById('w-status').textContent = status;
+  document.getElementById('bt-inr').textContent = '₹ ' + total.toLocaleString('en-IN');
+  document.getElementById('bt-sek').textContent = '≈ SEK ' + sek.toLocaleString() + ' saved vs Stockholm';
+  document.getElementById('bt-limit-label').textContent = 'Budget: ₹' + limit.toLocaleString('en-IN');
+  document.getElementById('budget-limit-input').value = limit;
+
+  const bar = document.getElementById('bt-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'bt-bar-fill' + (pct >= 95 ? ' danger' : pct >= 80 ? ' warn' : '');
+
+  const list = document.getElementById('expense-list');
+  const empty = document.getElementById('budget-empty');
+
+  if (state.expenses.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = '';
+  state.expenses.forEach(exp => {
+    const sekAmt = Math.round(exp.inr * INR_TO_SEK);
+    const row = document.createElement('div');
+    row.className = 'expense-row';
+    row.innerHTML = `
+      <span class="expense-name">${escHtml(exp.name)}</span>
+      <div class="expense-prices">
+        <div class="expense-inr">₹ ${exp.inr.toLocaleString('en-IN')}</div>
+        <div class="expense-sek">≈ SEK ${sekAmt.toLocaleString()}</div>
+      </div>
+      <button class="exp-del-btn" onclick="deleteExpense('${exp.id}')" aria-label="Delete">✕</button>
+    `;
+    list.appendChild(row);
+  });
 }
 
-function updateKg(id, val) {
-  state.weights[id] = val === '' ? '' : Number(val) || 0;
-  saveState();
-  renderWeight();
+function addExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const inr = parseFloat(document.getElementById('exp-inr').value);
+  if (!name || !inr) return;
+  state.expenses.push({ id: 'e' + Date.now(), name, inr });
+  document.getElementById('exp-name').value = '';
+  document.getElementById('exp-inr').value = '';
+  saveState(); renderBudget();
 }
 
-function updateWeight() {
-  state.bagLimit = Number(document.getElementById('w-limit').value) || 23;
-  saveState();
-  renderWeight();
+function deleteExpense(id) {
+  state.expenses = state.expenses.filter(e => e.id !== id);
+  saveState(); renderBudget();
 }
 
-// ─── INIT ───
+// ─── WEIGHT TAB ──────────────────────────────────────────────────────────────
+function updateWeightTab() {
+  const items = state.items;
+  const limit = state.weightLimit;
+  const packed = items.filter(i => i.done).reduce((s, i) => s + (parseFloat(i.weight) || 0), 0);
+  const remaining = Math.max(limit - packed, 0);
+  const unsorted = items.filter(i => !i.done).length;
+  const pct = packed / limit;
+
+  const valClass = pct >= .95 ? 'danger' : pct >= .8 ? 'warn' : 'good';
+
+  document.getElementById('pw-packed').textContent = packed.toFixed(1);
+  document.getElementById('pw-packed').className = 'pc-val ' + valClass;
+  document.getElementById('pw-remaining').textContent = remaining.toFixed(1);
+  document.getElementById('pw-remaining').className = 'pc-val ' + (pct >= .95 ? 'danger' : pct >= .8 ? 'warn' : 'good');
+  document.getElementById('pw-items').textContent = items.length;
+  document.getElementById('pw-unsorted').textContent = unsorted;
+  document.getElementById('pw-unsorted').className = 'pc-val' + (unsorted > 0 ? ' warn' : ' good');
+
+  const pill = document.getElementById('pw-pill');
+  const pillText = document.getElementById('pw-pill-text');
+  pill.className = 'remaining-pill' + (pct >= .95 ? ' danger' : pct >= .8 ? ' warn' : '');
+  pillText.textContent = remaining.toFixed(1) + ' kg remaining — ' + (pct >= .95 ? 'overweight risk!' : pct >= .8 ? 'getting heavy' : 'within limit');
+
+  // Category breakdown
+  const cats = {};
+  items.filter(i => i.done && i.weight > 0).forEach(i => {
+    const cat = guessCategory(i.name);
+    cats[cat] = (cats[cat] || 0) + (parseFloat(i.weight) || 0);
+  });
+  const catColors = { Textiles:'#f5c842', Supplements:'#4a9e6b', Gifts:'#c45c26', Pharmacy:'#4a9e6b', Spices:'#e08c1a', Crystals:'#7a6aaa', Electronics:'#4a8de0', Other:'#a89070' };
+  const catEl = document.getElementById('cat-breakdown');
+  const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+  if (sorted.length === 0) {
+    catEl.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--cream-dim)">Mark items as packed to see breakdown.</div>';
+  } else {
+    catEl.innerHTML = sorted.map(([cat, kg]) => `
+      <div class="cat-row">
+        <div class="cat-left">
+          <div class="cat-dot" style="background:${catColors[cat]||'#a89070'}"></div>
+          <span class="cat-name">${cat}</span>
+        </div>
+        <span class="cat-kg">${kg.toFixed(1)} kg</span>
+      </div>
+    `).join('');
+  }
+}
+
+function guessCategory(name) {
+  const n = name.toLowerCase();
+  if (/saree|dupatta|kurta|fabric|silk|cloth|lehenga|shalwar|kanjivaram|banarasi/.test(n)) return 'Textiles';
+  if (/ashwagandha|triphala|brahmi|supplement|capsule|ayurved|vitamin|protein/.test(n)) return 'Supplements';
+  if (/medicine|tablet|syrup|pharma|medic/.test(n)) return 'Pharmacy';
+  if (/spice|masala|methi|ajwain|jeera|turmeric|haldi|chilli/.test(n)) return 'Spices';
+  if (/crystal|tourmaline|carnelian|amethyst|quartz|stone/.test(n)) return 'Crystals';
+  if (/phone|charger|cable|earphone|gadget|electronic/.test(n)) return 'Electronics';
+  if (/candy|chocolate|sweet|mithai|biscuit|snack/.test(n)) return 'Gifts';
+  return 'Other';
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 loadState();
-buildFilters();
+
+// Add item input — tap to open modal
+document.getElementById('new-item-name').addEventListener('focus', openItemModal);
+document.getElementById('new-item-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') openItemModal();
+});
+
+// Budget limit change
+document.getElementById('budget-limit-input').addEventListener('change', function() {
+  state.budgetLimit = parseFloat(this.value) || 50000;
+  saveState(); renderBudget();
+});
+
+// Weight limit change
+document.getElementById('weight-limit-input').addEventListener('change', function() {
+  state.weightLimit = parseFloat(this.value) || 23;
+  saveState(); updateWeightBar(); updateWeightTab();
+});
+
+// Modal enter key
+document.getElementById('modal-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('modal-weight').focus(); });
+document.getElementById('modal-weight').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('modal-price').focus(); });
+document.getElementById('modal-price').addEventListener('keydown', e => { if (e.key === 'Enter') saveItem(); });
+
+// Budget add expense enter
+document.getElementById('exp-inr').addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); });
+
 renderChecklist();
 renderBudget();
-buildCityNav();
-renderStores();
-renderWeight();
 
-if (state.budgetLimit) document.getElementById('budget-limit').value = state.budgetLimit;
-if (state.bagLimit) document.getElementById('w-limit').value = state.bagLimit;
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
